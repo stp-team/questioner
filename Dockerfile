@@ -2,30 +2,24 @@ FROM python:3.13-slim
 
 WORKDIR /usr/src/app/questioner-bot
 
-# Install uv
+# Установка гита и других зависимостей
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Установка uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy project files first for better caching
+# Копирование файлов проекта для лучшего кеширования
 COPY pyproject.toml uv.lock* /usr/src/app/questioner-bot/
 
-# Install system dependencies and Microsoft ODBC driver
-RUN apt-get update && \
-    apt-get install -y curl gnupg unixodbc-dev && \
-    # Add Microsoft repository \
-    curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > /usr/share/keyrings/microsoft-archive-keyring.gpg && \
-    echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/debian/12/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list && \
-    # Update package lists and install ODBC driver \
-    apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y msodbcsql18 && \
-    # Clean up
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Python dependencies with uv (this will create .venv)
+# Установка зависимостей Python используя uv (создает .venv)
 RUN uv sync --frozen
 
-# Copy application code
+# Копирование кода проекта
 COPY . /usr/src/app/questioner-bot
 
-# Set the PATH to include the virtual environment
+# Установка PATH для включения env
 ENV PATH="/usr/src/app/questioner-bot/.venv/bin:$PATH"
+
+CMD ["uv", "run", "python", "main.py"]
