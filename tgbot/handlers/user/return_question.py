@@ -4,10 +4,8 @@ from typing import Sequence
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
+from stp_database import Employee, MainRequestsRepo, Question, QuestionsRequestsRepo
 
-from infrastructure.database.models import Question, Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.keyboards.group.main import reopened_question_kb
 from tgbot.keyboards.user.main import (
     MainMenu,
@@ -41,9 +39,7 @@ async def return_finished_q(
     main_repo: MainRequestsRepo,
     user: Employee,
 ):
-    """
-    Возврат вопроса специалистом по клику на клавиатуру после закрытия вопроса.
-    """
+    """Возврат вопроса специалистом по клику на клавиатуру после закрытия вопроса."""
     await state.clear()
 
     active_questions: Sequence[
@@ -64,7 +60,9 @@ async def return_finished_q(
         and user.user_id not in [d.employee_userid for d in active_questions]
         and question.token in [d.token for d in available_to_return_questions]
     ):
-        duty: Employee = await main_repo.employee.get_user(user_id=question.duty_userid)
+        duty: Employee = await main_repo.employee.get_users(
+            user_id=question.duty_userid
+        )
         await questions_repo.questions.update_question(
             token=question.token,
             status="open",
@@ -138,9 +136,7 @@ async def q_list(
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
 ):
-    """
-    Меню "🔄 Возврат вопроса". Отображает последние 5 закрытых вопросов за последние 24 часа для возврата в работу со стороны специалиста.
-    """
+    """Меню "🔄 Возврат вопроса". Отображает последние 5 закрытых вопросов за последние 24 часа для возврата в работу со стороны специалиста."""
     questions: Sequence[
         Question
     ] = await questions_repo.questions.get_last_questions_by_chat_id(
@@ -193,7 +189,9 @@ async def q_info(
         return
 
     if question.duty_userid:
-        duty: Employee = await main_repo.employee.get_user(user_id=question.duty_userid)
+        duty: Employee = await main_repo.employee.get_users(
+            user_id=question.duty_userid
+        )
     else:
         duty = None
 
@@ -269,7 +267,7 @@ async def return_q_confirm(
         # Get duty user only if topic_duty_fullname exists
         duty = None
         if question.duty_userid:
-            duty: Employee = await main_repo.employee.get_user(
+            duty: Employee = await main_repo.employee.get_users(
                 user_id=question.duty_userid
             )
 

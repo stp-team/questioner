@@ -3,9 +3,8 @@ from typing import Any, Awaitable, Callable, Dict, Union
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, Message
+from stp_database import Employee, MainRequestsRepo
 
-from infrastructure.database.models import Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
 from tgbot.services.logger import setup_logging
 
 setup_logging()
@@ -13,9 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class UserAccessMiddleware(BaseMiddleware):
-    """
-    Middleware responsible for updating user information.
-    """
+    """Middleware responsible for updating user information."""
 
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
@@ -43,8 +40,7 @@ class UserAccessMiddleware(BaseMiddleware):
         event: Union[Message, CallbackQuery],
         main_repo: MainRequestsRepo,
     ):
-        """
-        Обновление юзернейма пользователя если он отличается от записанного
+        """Обновление юзернейма пользователя если он отличается от записанного
         :param user:
         :param event:
         :param main_repo:

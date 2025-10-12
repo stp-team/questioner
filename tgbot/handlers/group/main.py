@@ -14,10 +14,14 @@ from aiogram.types import (
     InputMediaVideo,
     Message,
 )
+from stp_database import (
+    Employee,
+    MainRequestsRepo,
+    MessagesPair,
+    Question,
+    QuestionsRequestsRepo,
+)
 
-from infrastructure.database.models import MessagesPair, Question, Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.filters.topic import IsTopicMessage
 from tgbot.handlers.group.topic_cmds import end_q_cmd
 from tgbot.keyboards.group.main import (
@@ -57,7 +61,7 @@ async def handle_q_message(
     question: Question = await questions_repo.questions.get_question(
         group_id=message.chat.id, topic_id=message.message_thread_id
     )
-    employee: Employee = await main_repo.employee.get_user(
+    employee: Employee = await main_repo.employee.get_users(
         user_id=question.employee_userid
     )
 
@@ -324,15 +328,13 @@ async def handle_edited_message(
 
     try:
         # Проверяем сообщение на содержание медиа
-        if any(
-            [
-                message.photo,
-                message.video,
-                message.document,
-                message.audio,
-                message.animation,
-            ]
-        ):
+        if any([
+            message.photo,
+            message.video,
+            message.document,
+            message.audio,
+            message.animation,
+        ]):
             new_media = None
 
             if message.animation:

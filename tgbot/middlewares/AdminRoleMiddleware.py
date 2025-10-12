@@ -10,8 +10,8 @@ from aiogram.types import (
     ChatMemberOwner,
     Message,
 )
+from stp_database import Employee
 
-from infrastructure.database.models import Employee
 from tgbot.misc.dicts import group_admin_titles
 from tgbot.services.logger import setup_logging
 
@@ -20,8 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class AdminRoleMiddleware(BaseMiddleware):
-    """
-    Middleware responsible for managing user admin roles and custom titles.
+    """Middleware responsible for managing user admin roles and custom titles.
     Ensures users have correct admin permissions and titles based on their role.
     """
 
@@ -78,8 +77,7 @@ class AdminRoleMiddleware(BaseMiddleware):
 
     @staticmethod
     def _find_user_admin_status(chat_admins, user_id: int):
-        """
-        Проверка является ли пользователем администратором чата
+        """Проверка является ли пользователем администратором чата
         :param chat_admins:
         :param user_id:
         :return:
@@ -124,13 +122,11 @@ class AdminRoleMiddleware(BaseMiddleware):
                 logger.error(f"[Роли] Ошибка обновления роли для {user.fullname}: {e}")
 
     async def _promote_user_to_admin(self, user: Employee, chat_id: int) -> None:
-        """
-        Повышение пользователя до админа с правами приглашения других пользователей и титулом
+        """Повышение пользователя до админа с правами приглашения других пользователей и титулом
 
         :param user: Модель пользователя из БД
         :param chat_id: Идентификатор чата Telegram
         """
-
         try:
             # Promote user to admin
             await self.bot.promote_chat_member(

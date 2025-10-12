@@ -38,9 +38,7 @@ def admin_kb() -> InlineKeyboardMarkup:
 
 
 def division_selection_kb() -> InlineKeyboardMarkup:
-    """
-    Клавиатура для выбора направления при смене роли админа
-    """
+    """Клавиатура для выбора направления при смене роли админа"""
     buttons = [
         [
             InlineKeyboardButton(

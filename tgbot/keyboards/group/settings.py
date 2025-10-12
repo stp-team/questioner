@@ -84,9 +84,9 @@ def settings_emoji(
             )
 
         buttons.append(nav_row)
-        buttons.append(
-            [InlineKeyboardButton(text="❌ Отмена", callback_data="emoji_cancel")]
-        )
+        buttons.append([
+            InlineKeyboardButton(text="❌ Отмена", callback_data="emoji_cancel")
+        ])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard

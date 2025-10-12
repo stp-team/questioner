@@ -3,9 +3,8 @@ from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
+from stp_database import MessagesPair, QuestionsRequestsRepo
 
-from infrastructure.database.models import MessagesPair
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.services.logger import setup_logging
 
 setup_logging()
@@ -13,8 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class MessagePairingMiddleware(BaseMiddleware):
-    """
-    Middleware to handle message pairing for edited messages.
+    """Middleware to handle message pairing for edited messages.
 
     This middleware finds the corresponding message pair when a message is edited,
     allowing handlers to edit the correct message instead of sending a new one.
@@ -90,8 +88,7 @@ async def store_message_connection(
     question_token: str,
     direction: str,
 ) -> MessagesPair:
-    """
-    Helper function to store message connection in database.
+    """Helper function to store message connection in database.
 
     Args:
         questions_repo: Repository instance

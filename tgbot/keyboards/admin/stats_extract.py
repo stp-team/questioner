@@ -84,13 +84,11 @@ def extract_kb() -> InlineKeyboardMarkup:
         buttons.append(row)
 
     # Add back button
-    buttons.append(
-        [
-            InlineKeyboardButton(
-                text="↩️ Назад", callback_data=AdminMenu(menu="reset").pack()
-            ),
-        ]
-    )
+    buttons.append([
+        InlineKeyboardButton(
+            text="↩️ Назад", callback_data=AdminMenu(menu="reset").pack()
+        ),
+    ])
 
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
@@ -98,8 +96,7 @@ def extract_kb() -> InlineKeyboardMarkup:
 
 # Выбор направления для выгрузки статистики
 def division_selection_kb(month: int, year: int) -> InlineKeyboardMarkup:
-    """
-    Клавиатура выбора направления для выгрузки статистики
+    """Клавиатура выбора направления для выгрузки статистики
 
     :param month: Выбранный месяц
     :param year: Выбранный год

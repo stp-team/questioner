@@ -18,8 +18,7 @@ class FinishedQuestion(CallbackData, prefix="finished_q"):
 
 
 def reopened_question_kb() -> InlineKeyboardMarkup:
-    """
-    Клавиатура с освобождением вопроса после переоткрытия
+    """Клавиатура с освобождением вопроса после переоткрытия
 
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
@@ -42,8 +41,7 @@ def question_quality_duty_kb(
     allow_return: bool = True,
     show_quality: bool = None,
 ) -> InlineKeyboardMarkup:
-    """
-    Клавиатура оценки помощи с вопросом со стороны дежурного.
+    """Клавиатура оценки помощи с вопросом со стороны дежурного.
 
     :param str token: Уникальный токен вопроса
     :param bool allow_return: Разрешен ли специалисту возврат текущего вопроса
@@ -78,27 +76,23 @@ def question_quality_duty_kb(
     )
 
     if allow_return:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="🟢 Возврат разрешен",
-                    callback_data=QuestionAllowReturn(
-                        token=token, allow_return=False
-                    ).pack(),
-                )
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text="🟢 Возврат разрешен",
+                callback_data=QuestionAllowReturn(
+                    token=token, allow_return=False
+                ).pack(),
+            )
+        ])
     else:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="🟠 Возврат отключен",
-                    callback_data=QuestionAllowReturn(
-                        token=token, allow_return=True
-                    ).pack(),
-                )
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text="🟠 Возврат отключен",
+                callback_data=QuestionAllowReturn(
+                    token=token, allow_return=True
+                ).pack(),
+            )
+        ])
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=buttons,
@@ -109,8 +103,7 @@ def question_quality_duty_kb(
 def closed_question_duty_kb(
     token: str, allow_return: bool = True
 ) -> InlineKeyboardMarkup:
-    """
-    Клавиатура закрытого диалога для дежурного.
+    """Клавиатура закрытого диалога для дежурного.
 
     :param token: Уникальный токен вопроса
     :type token: str
@@ -131,27 +124,23 @@ def closed_question_duty_kb(
     ]
 
     if allow_return:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="🟢 Возврат разрешен",
-                    callback_data=QuestionAllowReturn(
-                        token=token, allow_return=False
-                    ).pack(),
-                )
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text="🟢 Возврат разрешен",
+                callback_data=QuestionAllowReturn(
+                    token=token, allow_return=False
+                ).pack(),
+            )
+        ])
     else:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="🟠 Возврат отключен",
-                    callback_data=QuestionAllowReturn(
-                        token=token, allow_return=True
-                    ).pack(),
-                )
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text="🟠 Возврат отключен",
+                callback_data=QuestionAllowReturn(
+                    token=token, allow_return=True
+                ).pack(),
+            )
+        ])
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=buttons,

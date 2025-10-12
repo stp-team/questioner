@@ -8,10 +8,9 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import Sequence
+from stp_database import Employee, MainRequestsRepo, MessagesPair, Question
+from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 
-from infrastructure.database.models import MessagesPair, Question, Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.config import load_config
 from tgbot.keyboards.group.main import closed_question_duty_kb
 from tgbot.keyboards.user.main import closed_question_specialist_kb
@@ -163,7 +162,7 @@ async def remove_old_topics(bot: Bot, session_pool):
 
             old_questions: Sequence[
                 Question
-            ] = await questions_repo.questions.get_old_questions()
+            ] = await questions_repo.questions.get_old_questions(days=60)
             old_pairs: Sequence[
                 MessagesPair
             ] = await questions_repo.messages_pairs.get_old_pairs()
@@ -467,7 +466,7 @@ async def send_attention_reminder(
         question: Question = await questions_repo.questions.get_question(
             token=question_token
         )
-        employee: Employee = await main_repo.employee.get_user(
+        employee: Employee = await main_repo.employee.get_users(
             user_id=question.employee_userid
         )
 

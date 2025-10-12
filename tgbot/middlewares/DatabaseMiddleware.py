@@ -4,9 +4,8 @@ from typing import Any, Awaitable, Callable, Dict, Union
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.exc import DBAPIError, DisconnectionError, OperationalError
+from stp_database import MainRequestsRepo, QuestionsRequestsRepo
 
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.config import Config
 from tgbot.services.logger import setup_logging
 
@@ -15,8 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseMiddleware(BaseMiddleware):
-    """
-    Middleware responsible only for database connections and session management.
+    """Middleware responsible only for database connections and session management.
     Provides database repositories to other middlewares and handlers.
     """
 
@@ -51,7 +49,7 @@ class DatabaseMiddleware(BaseMiddleware):
                         )  # For QuestionerBot DB
 
                         # Get user from database
-                        user = await main_repo.employee.get_user(
+                        user = await main_repo.employee.get_users(
                             user_id=event.from_user.id
                         )
 

@@ -7,11 +7,11 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.redis import DefaultKeyBuilder, RedisStorage
 from aiogram.types import (
     BotCommand,
-    BotCommandScopeAllPrivateChats,
     BotCommandScopeAllGroupChats,
+    BotCommandScopeAllPrivateChats,
 )
+from stp_database import create_engine, create_session_pool
 
-from infrastructure.database.setup import create_engine, create_session_pool
 from tgbot.config import Config, load_config
 from tgbot.handlers import routers_list
 from tgbot.middlewares.AdminRoleMiddleware import AdminRoleMiddleware
@@ -64,11 +64,9 @@ def register_middlewares(
     main_session_pool=None,
     questioner_session_pool=None,
 ):
-    """
-    Alternative setup with more selective middleware application.
+    """Alternative setup with more selective middleware application.
     Use this if you want different middleware chains for different event types.
     """
-
     # Always needed
     config_middleware = ConfigMiddleware(config)
     database_middleware = DatabaseMiddleware(
@@ -111,8 +109,7 @@ def register_middlewares(
 
 
 def get_storage(config):
-    """
-    Return storage based on the provided configuration.
+    """Return storage based on the provided configuration.
 
     Args:
         config (Config): The configuration object.
@@ -162,7 +159,6 @@ async def main():
 
     dp = Dispatcher(storage=storage)
 
-    # Create engines for different databases
     main_db_engine = create_engine(bot_config.db, db_name=bot_config.db.main_db)
     questioner_db_engine = create_engine(
         bot_config.db, db_name=bot_config.db.questioner_db

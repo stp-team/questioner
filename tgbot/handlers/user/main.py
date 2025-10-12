@@ -6,10 +6,9 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from stp_database import Employee, MainRequestsRepo, Question
+from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 
-from infrastructure.database.models import Question, Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.keyboards.user.main import (
     AskQuestionMenu,
     CancelQuestion,
@@ -23,8 +22,8 @@ from tgbot.keyboards.user.main import (
 from tgbot.misc.helpers import (
     disable_previous_buttons,
     extract_clever_link,
-    short_name,
     get_target_forum,
+    short_name,
 )
 from tgbot.misc.states import AskQuestion
 from tgbot.services.logger import setup_logging
@@ -275,7 +274,7 @@ async def question_text(
         else:
             user_fullname = short_name(user.fullname)
 
-        head = await main_repo.employee.get_user(fullname=user.head)
+        head = await main_repo.employee.get_users(fullname=user.head)
         if head and head.username:
             head_fullname = (
                 f"<a href='t.me/{head.username}'>{short_name(head.fullname)}</a>"
@@ -476,7 +475,7 @@ async def clever_link_handler(
     else:
         user_fullname = short_name(user.fullname)
 
-    head = await main_repo.employee.get_user(fullname=user.head)
+    head = await main_repo.employee.get_users(fullname=user.head)
     if head and head.username:
         head_fullname = (
             f"<a href='t.me/{head.username}'>{short_name(head.fullname)}</a>"
@@ -529,9 +528,7 @@ async def regulation_not_found_handler(
     questions_repo: QuestionsRequestsRepo,
     main_repo: MainRequestsRepo,
 ):
-    """
-    Обработчик кнопки "Не нашел" для случая, когда пользователь не смог найти регламент
-    """
+    """Обработчик кнопки "Не нашел" для случая, когда пользователь не смог найти регламент"""
     state_data = await state.get_data()
     await state.clear()
 
@@ -592,7 +589,7 @@ async def regulation_not_found_handler(
     else:
         user_fullname = short_name(user.fullname)
 
-    head = await main_repo.employee.get_user(fullname=user.head)
+    head = await main_repo.employee.get_users(fullname=user.head)
     if head and head.username:
         head_fullname = (
             f"<a href='t.me/{head.username}'>{short_name(head.fullname)}</a>"
@@ -711,8 +708,7 @@ async def default_message_handler(
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
 ):
-    """
-    Default handler for all unhandled user messages.
+    """Default handler for all unhandled user messages.
     Sends start message if user is not in question state and doesn't have active questions.
     """
     # Проверяем FSM

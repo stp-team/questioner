@@ -4,10 +4,8 @@ import logging
 import pytz
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
+from stp_database import Employee, MainRequestsRepo, Question, QuestionsRequestsRepo
 
-from infrastructure.database.models import Question, Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.filters.topic import IsTopicMessageWithCommand
 from tgbot.keyboards.group.main import FinishedQuestion, question_quality_duty_kb
 from tgbot.keyboards.user.main import question_quality_specialist_kb
@@ -107,7 +105,7 @@ async def end_q_cmd(
                 message_thread_id=question.topic_id,
             )
 
-            employee: Employee = await main_repo.employee.get_user(
+            employee: Employee = await main_repo.employee.get_users(
                 user_id=question.employee_userid
             )
 
@@ -186,7 +184,7 @@ async def release_q_cmd(
                 status="open",
             )
 
-            employee: Employee = await main_repo.employee.get_user(
+            employee: Employee = await main_repo.employee.get_users(
                 user_id=question.employee_userid
             )
 

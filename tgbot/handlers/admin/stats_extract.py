@@ -5,9 +5,8 @@ import pandas as pd
 from aiogram import F, Router
 from aiogram.types import BufferedInputFile, CallbackQuery
 from numpy.random.mtrand import Sequence
+from stp_database import MainRequestsRepo, QuestionsRequestsRepo
 
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
 from tgbot.filters.admin import AdminFilter
 from tgbot.keyboards.admin.main import AdminMenu
 from tgbot.keyboards.admin.stats_extract import (
@@ -44,9 +43,7 @@ async def admin_extract_month_select_division(
     callback: CallbackQuery,
     callback_data: MonthStatsExtract,
 ) -> None:
-    """
-    После выбора месяца показываем выбор направления
-    """
+    """После выбора месяца показываем выбор направления"""
     month = callback_data.month
     year = callback_data.year
 
@@ -84,9 +81,7 @@ async def admin_extract_division(
     questions_repo: QuestionsRequestsRepo,
     main_repo: MainRequestsRepo,
 ) -> None:
-    """
-    Выгрузка статистики по выбранному месяцу и направлению
-    """
+    """Выгрузка статистики по выбранному месяцу и направлению"""
     month = callback_data.month
     year = callback_data.year
     division = callback_data.division
@@ -184,22 +179,20 @@ async def admin_extract_division(
         # Возможность возврата
         allow_return = "Доступен" if question.allow_return else "Недоступен"
 
-        data.append(
-            {
-                "Токен": question.token,
-                "Дежурный": duty.fullname if duty else "Не назначен",
-                "Специалист": employee.fullname if employee else "Не найден",
-                "Направление": employee.division if employee else "Не указано",
-                "Вопрос": question.question_text,
-                "Время вопроса": question.start_time,
-                "Время завершения": question.end_time,
-                "Ссылка на БЗ": question.clever_link,
-                "Оценка специалиста": quality_employee,
-                "Оценка дежурного": quality_duty,
-                "Статус чата": status,
-                "Возврат": allow_return,
-            }
-        )
+        data.append({
+            "Токен": question.token,
+            "Дежурный": duty.fullname if duty else "Не назначен",
+            "Специалист": employee.fullname if employee else "Не найден",
+            "Направление": employee.division if employee else "Не указано",
+            "Вопрос": question.question_text,
+            "Время вопроса": question.start_time,
+            "Время завершения": question.end_time,
+            "Ссылка на БЗ": question.clever_link,
+            "Оценка специалиста": quality_employee,
+            "Оценка дежурного": quality_duty,
+            "Статус чата": status,
+            "Возврат": allow_return,
+        })
 
     if not data:
         await callback.message.edit_text(

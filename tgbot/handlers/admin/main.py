@@ -4,9 +4,9 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from stp_database import Employee
+from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 
-from infrastructure.database.models import Employee
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.filters.admin import AdminFilter
 from tgbot.filters.topic import IsTopicMessage
 from tgbot.handlers.user.main import main_cb
@@ -37,7 +37,7 @@ async def admin_start(
     questions_repo: QuestionsRequestsRepo,
 ) -> None:
     employee_topics_today = await questions_repo.questions.get_questions_count_today(
-        employee_userid=user.fullname
+        employee_userid=user.user_id
     )
     employee_topics_month = (
         await questions_repo.questions.get_questions_count_last_month(
@@ -110,9 +110,7 @@ async def change_role(
 async def reset_role_cb(
     callback: CallbackQuery, state: FSMContext, user: Employee
 ) -> None:
-    """
-    Сброс кастомной роли через клавиатуру
-    """
+    """Сброс кастомной роли через клавиатуру"""
     state_data = await state.get_data()
     await state.clear()
 
@@ -135,9 +133,7 @@ async def reset_role_cb(
 async def show_division_selection(
     callback: CallbackQuery,
 ) -> None:
-    """
-    Показывает меню выбора направления для смены роли
-    """
+    """Показывает меню выбора направления для смены роли"""
     await callback.message.edit_text(
         """<b>🎭 Изменение роли</b>
 
@@ -162,9 +158,7 @@ async def change_role_to_division(
     questions_repo: QuestionsRequestsRepo,
     user: Employee,
 ) -> None:
-    """
-    Изменяет роль админа на специалиста выбранного направления
-    """
+    """Изменяет роль админа на специалиста выбранного направления"""
     division = callback_data.division
 
     # Устанавливаем роль специалиста (1) и сохраняем выбранное направление
@@ -186,9 +180,7 @@ async def change_role_to_division(
 
 @admin_router.message(Command("reset"))
 async def reset_role_cmd(message: Message, state: FSMContext, user: Employee) -> None:
-    """
-    Сброс кастомной роли через команду
-    """
+    """Сброс кастомной роли через команду"""
     state_data = await state.get_data()
     await state.clear()
 
@@ -213,8 +205,6 @@ async def back_to_main_menu(
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
 ) -> None:
-    """
-    Возврат в главное админ-меню
-    """
+    """Возврат в главное админ-меню"""
     await admin_start(callback.message, state, user, questions_repo)
     await callback.answer()

@@ -7,10 +7,9 @@ from sqlalchemy import URL
 
 @dataclass
 class TgBot:
-    """
-    Создает объект TgBot из переменных окружения.
+    """Создает объект TgBot из переменных окружения.
 
-    Attributes
+    Attributes:
     ----------
     token : str
         Токен бота.
@@ -23,9 +22,7 @@ class TgBot:
 
     @staticmethod
     def from_env(env: Env):
-        """
-        Создает объект TgBot из переменных окружения.
-        """
+        """Создает объект TgBot из переменных окружения."""
         token = env.str("BOT_TOKEN")
 
         use_redis = env.bool("USE_REDIS")
@@ -38,10 +35,9 @@ class TgBot:
 
 @dataclass
 class ForumsConfig:
-    """
-    Класс конфигурации ForumsConfig.
+    """Класс конфигурации ForumsConfig.
 
-    Attributes
+    Attributes:
     ----------
     ntp_main_forum_id : str
         Идентификатор форума ТГ НТП
@@ -60,9 +56,7 @@ class ForumsConfig:
 
     @staticmethod
     def from_env(env: Env):
-        """
-        Создает объект ForumsConfig из переменных окружения.
-        """
+        """Создает объект ForumsConfig из переменных окружения."""
         ntp_main_forum_id = env.str("NTP_MAIN_FORUM_ID")
         ntp_trainee_forum_id = env.str("NTP_TRAINEE_FORUM_ID")
         nck_main_forum_id = env.str("NCK_MAIN_FORUM_ID")
@@ -78,10 +72,9 @@ class ForumsConfig:
 
 @dataclass
 class QuestionerConfig:
-    """
-    Класс конфигурации QuestionerConfig.
+    """Класс конфигурации QuestionerConfig.
 
-    Attributes
+    Attributes:
     ----------
     ask_clever_link : str
         Запрашивать ли регламент
@@ -98,9 +91,7 @@ class QuestionerConfig:
 
     @staticmethod
     def from_env(env: Env):
-        """
-        Создает объект QuestionerConfig из переменных окружения.
-        """
+        """Создает объект QuestionerConfig из переменных окружения."""
         remove_old_questions = env.bool("REMOVE_OLD_QUESTIONS")
         remove_old_questions_days = env.int("REMOVE_OLD_QUESTIONS_DAYS")
 
@@ -112,11 +103,10 @@ class QuestionerConfig:
 
 @dataclass
 class DbConfig:
-    """
-    Класс конфигурации подключения к базе данных.
+    """Класс конфигурации подключения к базе данных.
     Класс хранит в себе настройки базы
 
-    Attributes
+    Attributes:
     ----------
     host : str
         Хост, на котором находится база данных
@@ -142,9 +132,7 @@ class DbConfig:
         db_name=None,
         driver="aiomysql",
     ) -> URL:
-        """
-        Constructs and returns SQLAlchemy URL for MariaDB database connection
-        """
+        """Constructs and returns SQLAlchemy URL for MariaDB database connection"""
         connection_url = URL.create(
             f"mysql+{driver}",
             username=self.user,
@@ -165,9 +153,7 @@ class DbConfig:
 
     @staticmethod
     def from_env(env: Env):
-        """
-        Создает объект DbConfig из переменных окружения.
-        """
+        """Создает объект DbConfig из переменных окружения."""
         host = env.str("DB_HOST")
         user = env.str("DB_USER")
         password = env.str("DB_PASS")
@@ -186,10 +172,9 @@ class DbConfig:
 
 @dataclass
 class RedisConfig:
-    """
-    Класс конфигурации Redis.
+    """Класс конфигурации Redis.
 
-    Attributes
+    Attributes:
     ----------
     redis_pass : Optional(str)
         Пароль для авторизации в Redis.
@@ -207,9 +192,7 @@ class RedisConfig:
     redis_db: Optional[str]
 
     def dsn(self) -> str:
-        """
-        Конструирует и возвращает Redis DSN (Data Source Name).
-        """
+        """Конструирует и возвращает Redis DSN (Data Source Name)."""
         if self.redis_pass:
             return f"redis://:{self.redis_pass}@{self.redis_host}:{self.redis_port}/{self.redis_db}"
         else:
@@ -217,9 +200,7 @@ class RedisConfig:
 
     @staticmethod
     def from_env(env: Env):
-        """
-        Создает объект RedisConfig из переменных окружения.
-        """
+        """Создает объект RedisConfig из переменных окружения."""
         redis_pass = env.str("REDIS_PASSWORD")
         redis_port = env.int("REDIS_PORT")
         redis_host = env.str("REDIS_HOST")
@@ -235,12 +216,11 @@ class RedisConfig:
 
 @dataclass
 class Config:
-    """
-    Основной конфигурационный класс, интегрирующий в себя другие классы.
+    """Основной конфигурационный класс, интегрирующий в себя другие классы.
 
     Этот класс содержит все настройки, и используется для доступа к переменным окружения.
 
-    Attributes
+    Attributes:
     ----------
     tg_bot : TgBot
         Хранит специфичные для бота настройки.
@@ -258,13 +238,11 @@ class Config:
 
 
 def load_config(path: str = None) -> Config:
-    """
-    Эта функция принимает в качестве входных данных опциональный путь к файлу и возвращает объект Config.
+    """Эта функция принимает в качестве входных данных опциональный путь к файлу и возвращает объект Config.
     :param path: Путь к файлу env, из которого загружаются переменные конфигурации.
     Она считывает переменные окружения из файла .env, если он указан, в противном случае — из окружения процесса.
     :return: Объект Config с атрибутами, установленными в соответствии с переменными окружения.
     """
-
     # Создает объект Env.
     # Объект используется для чтения файла переменных окружения.
     env = Env()

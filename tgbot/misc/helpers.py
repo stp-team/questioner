@@ -3,8 +3,8 @@ import re
 
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
+from stp_database import Employee
 
-from infrastructure.database.models import Employee
 from tgbot.config import load_config
 from tgbot.services.logger import setup_logging
 

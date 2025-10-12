@@ -7,8 +7,8 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
+from stp_database import Question
 
-from infrastructure.database.models import Question
 from tgbot.keyboards.admin.main import AdminMenu
 
 
@@ -42,8 +42,7 @@ class ActivityStatusToggle(CallbackData, prefix="activity_toggle"):
 
 
 def user_kb(is_role_changed: bool = False) -> InlineKeyboardMarkup:
-    """
-    Клавиатура главного меню.
+    """Клавиатура главного меню.
 
     :param bool is_role_changed: Изменена ли роль пользователя
     :return: Объект встроенной клавиатуры для главного меню
@@ -61,20 +60,17 @@ def user_kb(is_role_changed: bool = False) -> InlineKeyboardMarkup:
 
     # Добавляем кнопку сброса если роль измененная
     if is_role_changed:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="♻️ Сбросить роль", callback_data=AdminMenu(menu="reset").pack()
-                ),
-            ]
-        )
+        buttons.append([
+            InlineKeyboardButton(
+                text="♻️ Сбросить роль", callback_data=AdminMenu(menu="reset").pack()
+            ),
+        ])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def back_kb() -> InlineKeyboardMarkup:
-    """
-    Клавиатура для возврата в главное меню.
+    """Клавиатура для возврата в главное меню.
 
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
@@ -93,8 +89,7 @@ def back_kb() -> InlineKeyboardMarkup:
 
 
 def question_ask_kb(is_user_in_top: bool = False) -> InlineKeyboardMarkup:
-    """
-    Клавиатура для оформления вопроса.
+    """Клавиатура для оформления вопроса.
 
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
@@ -126,8 +121,7 @@ def question_ask_kb(is_user_in_top: bool = False) -> InlineKeyboardMarkup:
 
 
 def cancel_question_kb(token: str) -> InlineKeyboardMarkup:
-    """
-    Клавиатура с отменой вопроса и возвратом в главное меню.
+    """Клавиатура с отменой вопроса и возвратом в главное меню.
 
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
@@ -147,8 +141,7 @@ def cancel_question_kb(token: str) -> InlineKeyboardMarkup:
 
 
 def finish_question_kb() -> ReplyKeyboardMarkup:
-    """
-    Клавиатура с отменой вопроса и возвратом в главное меню.
+    """Клавиатура с отменой вопроса и возвратом в главное меню.
 
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
@@ -167,8 +160,7 @@ def finish_question_kb() -> ReplyKeyboardMarkup:
 def question_quality_specialist_kb(
     token: str,
 ) -> InlineKeyboardMarkup:
-    """
-    Клавиатура оценки помощи с вопросом со стороны специалиста.
+    """Клавиатура оценки помощи с вопросом со стороны специалиста.
 
     :param str token: Уникальный токен вопроса
     :return: Объект встроенной клавиатуры для возврата главного меню
@@ -215,8 +207,7 @@ def question_quality_specialist_kb(
 
 
 def closed_question_specialist_kb(token: str) -> InlineKeyboardMarkup:
-    """
-    Клавиатура закрытого диалога для специалиста.
+    """Клавиатура закрытого диалога для специалиста.
 
     :param token: Уникальный токен вопроса
     :return: Объект встроенной клавиатуры для закрытого диалога
@@ -247,8 +238,7 @@ def closed_question_specialist_kb(token: str) -> InlineKeyboardMarkup:
 
 
 def questions_list_kb(questions: Sequence[Question]) -> InlineKeyboardMarkup:
-    """
-    Клавиатура списка доступных к возврату вопросов
+    """Клавиатура списка доступных к возврату вопросов
 
     :param Sequence[Question] questions: Список вопросов для отображения
     :return: Объект встроенной клавиатуры для закрытого диалога
@@ -261,31 +251,24 @@ def questions_list_kb(questions: Sequence[Question]) -> InlineKeyboardMarkup:
             if question.end_time
             else question.start_time.strftime("%d.%m.%Y")
         )
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text=f"📅 {date_str} | {question.question_text}",
-                    callback_data=ReturnQuestion(
-                        action="show", token=question.token
-                    ).pack(),
-                )
-            ]
-        )
-
-    buttons.append(
-        [
+        buttons.append([
             InlineKeyboardButton(
-                text="↩️ Назад", callback_data=MainMenu(menu="main").pack()
+                text=f"📅 {date_str} | {question.question_text}",
+                callback_data=ReturnQuestion(
+                    action="show", token=question.token
+                ).pack(),
             )
-        ]
-    )
+        ])
+
+    buttons.append([
+        InlineKeyboardButton(text="↩️ Назад", callback_data=MainMenu(menu="main").pack())
+    ])
 
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
 def question_confirm_kb(token: str) -> InlineKeyboardMarkup:
-    """
-    Клавиатура подтверждения возврата вопроса в работу
+    """Клавиатура подтверждения возврата вопроса в работу
 
     :param str token: Уникальный токен вопроса
     :return: Объект встроенной клавиатуры для закрытого диалога
@@ -313,8 +296,7 @@ def activity_status_toggle_kb(
     current_status: bool = None,
     global_status: bool = True,
 ) -> InlineKeyboardMarkup:
-    """
-    Клавиатура переключения статуса активности для топика
+    """Клавиатура переключения статуса активности для топика
 
     :param token: Уникальный токен вопроса
     :param user_id: Идентификатор пользователя Telegram

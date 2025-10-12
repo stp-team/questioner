@@ -5,6 +5,7 @@ description = "Бот-вопросник"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "stp-database @ git+https://git@github.com/ERTG-BOTS/stp-database.git",
     "aiogram>=3.21.0",
     "aiomysql>=0.2.0",
     "aioodbc>=0.5.0",
@@ -20,3 +21,13 @@ dependencies = [
     "redis>=6.2.0",
     "sqlalchemy>=2.0.41",
 ]
+
+[tool.ruff]
+preview = true
+
+[tool.ruff.lint]
+select = ["D", "E", "F", "I"]
+ignore = ["D417", "E501"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

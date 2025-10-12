@@ -12,8 +12,7 @@ def on_user_leave_kb(
     user_id: int | str,
     change_role: bool = False,
 ) -> InlineKeyboardMarkup:
-    """
-    Клавиатура для использования после удаления из группы
+    """Клавиатура для использования после удаления из группы
     :param user_id: Идентификатор пользователя Telegram
     :param change_role: Изменена ли роль пользователя
     :return: Объект встроенной клавиатуры для возврата главного меню

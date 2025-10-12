@@ -3,10 +3,8 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, Message
+from stp_database import Employee, MainRequestsRepo, QuestionsRequestsRepo
 
-from infrastructure.database.models import Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.filters.topic import IsMainTopicMessageWithCommand
 from tgbot.keyboards.group.settings import (
     SettingsEmoji,
@@ -49,8 +47,8 @@ async def question_info(
     )
 
     if question:
-        duty = await main_repo.employee.get_user(user_id=question.duty_userid)
-        employee = await main_repo.employee.get_user(user_id=question.employee_userid)
+        duty = await main_repo.employee.get_users(user_id=question.duty_userid)
+        employee = await main_repo.employee.get_users(user_id=question.employee_userid)
 
         response = f"""<b>Информация о вопросе</b>
 

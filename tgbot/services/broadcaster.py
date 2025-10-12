@@ -13,8 +13,7 @@ async def send_message(
     disable_notification: bool = False,
     reply_markup: InlineKeyboardMarkup = None,
 ) -> bool:
-    """
-    Безопасная рассылки сообщений
+    """Безопасная рассылки сообщений
 
     :param bot: Экземпляр бота.
     :param user_id: Идентификатор пользователя Telegram. Если строка - должен содержать только цифры.
@@ -57,8 +56,7 @@ async def broadcast(
     disable_notification: bool = False,
     reply_markup: InlineKeyboardMarkup = None,
 ) -> int:
-    """
-    Simple broadcaster.
+    """Simple broadcaster.
     :param bot: Bot instance.
     :param users: List of users.
     :param text: Text of the message.

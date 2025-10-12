@@ -14,9 +14,8 @@ from aiogram.types import (
     Message,
     ReplyKeyboardRemove,
 )
+from stp_database import Employee, MessagesPair, Question, QuestionsRequestsRepo
 
-from infrastructure.database.models import MessagesPair, Question, Employee
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.filters.active_question import ActiveQuestion, ActiveQuestionWithCommand
 from tgbot.keyboards.group.main import question_quality_duty_kb
 from tgbot.keyboards.user.main import (
@@ -304,15 +303,13 @@ async def handle_edited_message(
 
     try:
         # Проверяем сообщение на содержание медиа
-        if any(
-            [
-                message.photo,
-                message.video,
-                message.document,
-                message.audio,
-                message.animation,
-            ]
-        ):
+        if any([
+            message.photo,
+            message.video,
+            message.document,
+            message.audio,
+            message.animation,
+        ]):
             new_media = None
 
             if message.animation:

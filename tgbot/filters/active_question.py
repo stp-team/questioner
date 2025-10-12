@@ -3,9 +3,8 @@ import logging
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from sqlalchemy import Sequence
+from stp_database import Question, QuestionsRequestsRepo
 
-from infrastructure.database.models import Question
-from infrastructure.database.repo.questions.requests import QuestionsRequestsRepo
 from tgbot.services.logger import setup_logging
 
 setup_logging()
@@ -16,8 +15,7 @@ class ActiveQuestion(BaseFilter):
     async def __call__(
         self, obj: Message, questions_repo: QuestionsRequestsRepo, **kwargs
     ) -> dict[str, str] | bool:
-        """
-        Filter to check if user has an active question
+        """Filter to check if user has an active question
         ONLY works in private chats, not in groups
         :param obj: Message object being filtered
         :param questions_repo: Database repository for questions

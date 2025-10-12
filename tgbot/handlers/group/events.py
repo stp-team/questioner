@@ -3,9 +3,8 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated
+from stp_database import Employee, MainRequestsRepo
 
-from infrastructure.database.models import Employee
-from infrastructure.database.repo.STP.requests import MainRequestsRepo
 from tgbot.keyboards.group.events import RemovedUser, on_user_leave_kb
 from tgbot.misc.dicts import group_admin_titles, role_names
 from tgbot.misc.helpers import short_name
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @group_events_router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def on_user_join(event: ChatMemberUpdated, main_repo: MainRequestsRepo):
-    user: Employee = await main_repo.employee.get_user(event.new_chat_member.user.id)
+    user: Employee = await main_repo.employee.get_users(event.new_chat_member.user.id)
 
     if user is None:
         return
@@ -65,10 +64,10 @@ async def on_user_leave(event: ChatMemberUpdated, main_repo: MainRequestsRepo):
     left_user_id = event.new_chat_member.user.id
     action_user_id = event.from_user.id
 
-    left_user: Employee = await main_repo.employee.get_user(
+    left_user: Employee = await main_repo.employee.get_users(
         event.new_chat_member.user.id
     )
-    action_user: Employee = await main_repo.employee.get_user(event.from_user.id)
+    action_user: Employee = await main_repo.employee.get_users(event.from_user.id)
 
     if left_user_id == action_user_id:
         # Пользователь вышел сам
@@ -96,7 +95,7 @@ async def change_user_role(
     main_repo: MainRequestsRepo,
 ):
     logger.info(callback_data.user_id)
-    removed_user: Employee = await main_repo.employee.get_user(callback_data.user_id)
+    removed_user: Employee = await main_repo.employee.get_users(callback_data.user_id)
 
     if user.role == 10 and removed_user:
         await callback.bot.unban_chat_member(
