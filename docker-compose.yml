@@ -17,6 +17,7 @@ services:
       options:
         max-size: "200k"
         max-file: "10"
+
     networks:
       - stp_bots
 
@@ -30,7 +31,6 @@ services:
       - cache:/data
     networks:
       - stp_bots
-
   ##   To enable postgres uncomment the following lines
   #  http://pgconfigurator.cybertec.at/ For Postgres Configuration
   # pg_database:
