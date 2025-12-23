@@ -3,7 +3,8 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated
-from stp_database import Employee, MainRequestsRepo
+from stp_database.models.STP import Employee
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.keyboards.group.events import RemovedUser, on_user_leave_kb
 from tgbot.misc.dicts import group_admin_titles, role_names

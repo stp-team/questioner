@@ -3,7 +3,9 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, Message
-from stp_database import Employee, MainRequestsRepo, QuestionsRequestsRepo
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.topic import IsMainTopicMessageWithCommand
 from tgbot.keyboards.group.settings import (

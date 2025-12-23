@@ -4,7 +4,10 @@ import logging
 import pytz
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
-from stp_database import Employee, MainRequestsRepo, Question, QuestionsRequestsRepo
+from stp_database.models.Questions import Question
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.topic import IsTopicMessageWithCommand
 from tgbot.keyboards.group.main import FinishedQuestion, question_quality_duty_kb

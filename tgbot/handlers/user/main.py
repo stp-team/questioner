@@ -6,9 +6,14 @@ from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from stp_database import Employee, MainRequestsRepo, Question
+from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog.api.exceptions import NoContextError
+from stp_database.models.Questions import Question
+from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
+from tgbot.dialogs.states.user.main import UserSG
 from tgbot.keyboards.user.main import (
     AskQuestionMenu,
     CancelQuestion,
@@ -43,91 +48,13 @@ logger = logging.getLogger(__name__)
 
 
 @user_router.message(CommandStart())
-async def main_cmd(
-    message: Message,
-    state: FSMContext,
-    user: Employee,
-    questions_repo: QuestionsRequestsRepo,
-):
-    employee_topics_today = await questions_repo.questions.get_questions_count_today(
-        employee_userid=user.user_id
-    )
-    employee_topics_month = (
-        await questions_repo.questions.get_questions_count_last_month(
-            employee_userid=user.fullname
-        )
-    )
+async def start_user(message: Message, dialog_manager: DialogManager):
+    try:
+        await dialog_manager.done()
+    except NoContextError:
+        pass
 
-    state_data = await state.get_data()
-    await state.clear()
-
-    if user:
-        await message.answer(
-            f"""👋 Привет, <b>{short_name(user.fullname)}</b>!
-
-Я - бот-вопросник
-
-<b>❓ Ты задал вопросов:</b>
-- За день {employee_topics_today}
-- За месяц {employee_topics_month}
-
-<i>Используй меню для управление ботом</i>""",
-            reply_markup=user_kb(
-                is_role_changed=True
-                if state_data.get("role") or user.role == 10
-                else False
-            ),
-        )
-        logging.info(
-            f"{'[Админ]' if state_data.get('role') or user.role == 10 else '[Юзер]'} {message.from_user.username} ({message.from_user.id}): Открыто юзер-меню"
-        )
-    else:
-        await message.answer(f"""Привет, <b>@{message.from_user.username}</b>!
-        
-Не нашел тебя в списке зарегистрированных пользователей
-
-Регистрация происходит через бота Графиков
-Если возникли сложности с регистраций обратись к МиП
-
-Если ты зарегистрировался недавно, напиши <b>/start</b>""")
-
-
-@user_router.callback_query(MainMenu.filter(F.menu == "main"))
-async def main_cb(
-    callback: CallbackQuery,
-    state: FSMContext,
-    user: Employee,
-    questions_repo: QuestionsRequestsRepo,
-):
-    employee_topics_today = await questions_repo.questions.get_questions_count_today(
-        employee_userid=user.user_id
-    )
-    employee_topics_month = (
-        await questions_repo.questions.get_questions_count_last_month(
-            employee_userid=user.fullname
-        )
-    )
-
-    state_data = await state.get_data()
-
-    await callback.message.edit_text(
-        f"""Привет, <b>{short_name(user.fullname)}</b>!
-
-Я - бот-вопросник
-
-<b>❓ Ты задал вопросов:</b>
-- За день {employee_topics_today}
-- За месяц {employee_topics_month}
-
-Используй меню, чтобы выбрать действие""",
-        reply_markup=user_kb(
-            is_role_changed=True if state_data.get("role") or user.role == 10 else False
-        ),
-    )
-    logging.info(
-        f"{'[Админ]' if state_data.get('role') or user.role == 10 else '[Юзер]'} {callback.from_user.username} ({callback.from_user.id}): Открыто юзер-меню"
-    )
-    await callback.answer()
+    await dialog_manager.start(UserSG.menu, mode=StartMode.RESET_STACK)
 
 
 @user_router.callback_query(MainMenu.filter(F.menu == "ask"))
@@ -688,14 +615,8 @@ async def cancel_question(
 <i>Вопрос будет удален через 30 секунд</i>""",
         )
         await callback.answer("Вопрос успешно удален")
-        await main_cb(
-            callback=callback, state=state, user=user, questions_repo=questions_repo
-        )
     elif not question:
         await callback.answer("Не удалось найти отменяемый вопрос")
-        await main_cb(
-            callback=callback, state=state, user=user, questions_repo=questions_repo
-        )
     else:
         await callback.answer("Вопрос не может быть отменен. Он уже в работе")
     await callback.answer()

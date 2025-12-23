@@ -10,9 +10,11 @@ from aiogram.types import (
     BotCommandScopeAllGroupChats,
     BotCommandScopeAllPrivateChats,
 )
+from aiogram_dialog import setup_dialogs
 from stp_database import create_engine, create_session_pool
 
 from tgbot.config import Config, load_config
+from tgbot.dialogs.menus import dialogs_list
 from tgbot.handlers import routers_list
 from tgbot.middlewares.AdminRoleMiddleware import AdminRoleMiddleware
 from tgbot.middlewares.ConfigMiddleware import ConfigMiddleware
@@ -30,33 +32,6 @@ bot_config = load_config(".env")
 logger = logging.getLogger(__name__)
 
 
-# async def on_startup(bot: Bot):
-#     if bot_config.tg_bot.activity_status:
-#         timeout_msg = f"Да ({bot_config.tg_bot.activity_warn_minutes}/{bot_config.tg_bot.activity_close_minutes} минут)"
-#     else:
-#         timeout_msg = "Нет"
-#
-#     if bot_config.tg_bot.remove_old_questions:
-#         remove_topics_msg = (
-#             f"Да (старше {bot_config.tg_bot.remove_old_questions_days} дней)"
-#         )
-#     else:
-#         remove_topics_msg = "Нет"
-#
-#     await bot.send_message(
-#         chat_id=bot_config.tg_bot.ntp_forum_id,
-#         text=f"""<b>🚀 Запуск</b>
-#
-# Вопросник запущен со следующими параметрами:
-# <b>- Направление:</b> {bot_config.tg_bot.division}
-# <b>- Запрашивать регламент:</b> {"Да" if bot_config.tg_bot.ask_clever_link else "Нет"}
-# <b>- Закрывать по таймауту:</b> {timeout_msg}
-# <b>- Удалять старые вопросы:</b> {remove_topics_msg}
-#
-# <blockquote>База данных: {"Основная" if bot_config.db.main_db == "STPMain" else "Запасная"}</blockquote>""",
-#     )
-
-
 def register_middlewares(
     dp: Dispatcher,
     config: Config,
@@ -64,10 +39,6 @@ def register_middlewares(
     main_session_pool=None,
     questioner_session_pool=None,
 ):
-    """Alternative setup with more selective middleware application.
-    Use this if you want different middleware chains for different event types.
-    """
-    # Always needed
     config_middleware = ConfigMiddleware(config)
     database_middleware = DatabaseMiddleware(
         config=config,
@@ -79,32 +50,20 @@ def register_middlewares(
     # User management middlewares
     access_middleware = UserAccessMiddleware(bot=bot)
     role_middleware = AdminRoleMiddleware(bot=bot)
+    message_pairing_middleware = MessagePairingMiddleware()
 
-    # Apply to messages (most comprehensive chain)
+    # Apply to messages
     for middleware in [
         config_middleware,
         database_middleware,
         access_middleware,
         role_middleware,
+        message_pairing_middleware,
     ]:
         dp.message.outer_middleware(middleware)
-
-    # Apply to callback queries (skip role management if not needed)
-    for middleware in [config_middleware, database_middleware, access_middleware]:
         dp.callback_query.outer_middleware(middleware)
-
-    # Apply to edited messages (includes message pairing)
-    for middleware in [
-        config_middleware,
-        database_middleware,
-        access_middleware,
-        role_middleware,
-    ]:
         dp.edited_message.outer_middleware(middleware)
-    dp.edited_message.outer_middleware(MessagePairingMiddleware())
-
-    # Apply to chat member updates (minimal chain)
-    for middleware in [config_middleware, database_middleware]:
+        dp.edited_message.outer_middleware()
         dp.chat_member.outer_middleware(middleware)
 
 
@@ -155,13 +114,19 @@ async def main():
         scope=BotCommandScopeAllGroupChats(),
     )
 
-    # await bot.set_my_name(name="Вопросник")
-
     dp = Dispatcher(storage=storage)
 
-    main_db_engine = create_engine(bot_config.db, db_name=bot_config.db.main_db)
+    main_db_engine = create_engine(
+        host=bot_config.db.host,
+        username=bot_config.db.user,
+        password=bot_config.db.password,
+        db_name=bot_config.db.main_db,
+    )
     questioner_db_engine = create_engine(
-        bot_config.db, db_name=bot_config.db.questioner_db
+        host=bot_config.db.host,
+        username=bot_config.db.user,
+        password=bot_config.db.password,
+        db_name=bot_config.db.questioner_db,
     )
 
     main_db = create_session_pool(main_db_engine)
@@ -172,6 +137,9 @@ async def main():
     dp["questioner_db"] = questioner_db
 
     dp.include_routers(*routers_list)
+    dp.include_routers(*dialogs_list)
+    # dp.include_routers(*common_dialogs_list)
+    setup_dialogs(dp)
 
     register_middlewares(dp, bot_config, bot, main_db, questioner_db)
 

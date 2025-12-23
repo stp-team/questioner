@@ -14,13 +14,10 @@ from aiogram.types import (
     InputMediaVideo,
     Message,
 )
-from stp_database import (
-    Employee,
-    MainRequestsRepo,
-    MessagesPair,
-    Question,
-    QuestionsRequestsRepo,
-)
+from stp_database.models.Questions import MessagesPair, Question
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.topic import IsTopicMessage
 from tgbot.handlers.group.topic_cmds import end_q_cmd

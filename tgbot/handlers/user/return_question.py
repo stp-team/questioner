@@ -4,7 +4,10 @@ from typing import Sequence
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
-from stp_database import Employee, MainRequestsRepo, Question, QuestionsRequestsRepo
+from stp_database.models.Questions import Question
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.keyboards.group.main import reopened_question_kb
 from tgbot.keyboards.user.main import (

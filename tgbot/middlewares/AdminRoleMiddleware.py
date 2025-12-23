@@ -10,7 +10,7 @@ from aiogram.types import (
     ChatMemberOwner,
     Message,
 )
-from stp_database import Employee
+from stp_database.models.STP import Employee
 
 from tgbot.misc.dicts import group_admin_titles
 from tgbot.services.logger import setup_logging

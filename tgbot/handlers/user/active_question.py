@@ -14,7 +14,9 @@ from aiogram.types import (
     Message,
     ReplyKeyboardRemove,
 )
-from stp_database import Employee, MessagesPair, Question, QuestionsRequestsRepo
+from stp_database.models.Questions import MessagesPair, Question
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
 
 from tgbot.filters.active_question import ActiveQuestion, ActiveQuestionWithCommand
 from tgbot.keyboards.group.main import question_quality_duty_kb

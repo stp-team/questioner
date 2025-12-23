@@ -4,12 +4,11 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from stp_database import Employee
+from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 
 from tgbot.filters.admin import AdminFilter
 from tgbot.filters.topic import IsTopicMessage
-from tgbot.handlers.user.main import main_cb
 from tgbot.keyboards.admin.main import (
     AdminMenu,
     ChangeRole,
@@ -100,9 +99,6 @@ async def change_role(
                 f"[Админ] {callback.from_user.username} ({callback.from_user.id}): Роль изменена с {user.role} на 1"
             )
 
-    await main_cb(
-        callback=callback, state=state, questions_repo=questions_repo, user=user
-    )
     await callback.answer()
 
 
@@ -172,9 +168,6 @@ async def change_role_to_division(
         f"Роль изменена с {user.role} на специалиста {division}"
     )
 
-    await main_cb(
-        callback=callback, state=state, questions_repo=questions_repo, user=user
-    )
     await callback.answer()
 
 

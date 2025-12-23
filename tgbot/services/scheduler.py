@@ -8,8 +8,10 @@ from apscheduler.jobstores.memory import MemoryJobStore
 from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import Sequence
-from stp_database import Employee, MainRequestsRepo, MessagesPair, Question
+from stp_database.models.Questions import MessagesPair, Question
+from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.config import load_config
 from tgbot.keyboards.group.main import closed_question_duty_kb

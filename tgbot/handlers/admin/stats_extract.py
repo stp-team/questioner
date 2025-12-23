@@ -5,7 +5,8 @@ import pandas as pd
 from aiogram import F, Router
 from aiogram.types import BufferedInputFile, CallbackQuery
 from numpy.random.mtrand import Sequence
-from stp_database import MainRequestsRepo, QuestionsRequestsRepo
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.admin import AdminFilter
 from tgbot.keyboards.admin.main import AdminMenu

@@ -1,6 +1,6 @@
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
-from stp_database import Employee
+from stp_database.models.STP import Employee
 
 from tgbot.misc.dicts import executed_codes
 

@@ -7,7 +7,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
 )
-from stp_database import Question
+from stp_database.models.Questions import Question
 
 from tgbot.keyboards.admin.main import AdminMenu
 

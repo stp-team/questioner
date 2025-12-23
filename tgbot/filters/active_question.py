@@ -3,7 +3,8 @@ import logging
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from sqlalchemy import Sequence
-from stp_database import Question, QuestionsRequestsRepo
+from stp_database.models.Questions import Question
+from stp_database.repo.Questions import QuestionsRequestsRepo
 
 from tgbot.services.logger import setup_logging
 

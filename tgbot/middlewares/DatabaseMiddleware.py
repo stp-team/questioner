@@ -4,7 +4,8 @@ from typing import Any, Awaitable, Callable, Dict, Union
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.exc import DBAPIError, DisconnectionError, OperationalError
-from stp_database import MainRequestsRepo, QuestionsRequestsRepo
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.config import Config
 from tgbot.services.logger import setup_logging
