@@ -17,12 +17,10 @@ from tgbot.dialogs.states.user.main import UserSG
 from tgbot.keyboards.user.main import (
     AskQuestionMenu,
     CancelQuestion,
-    MainMenu,
     activity_status_toggle_kb,
     back_kb,
     cancel_question_kb,
     question_ask_kb,
-    user_kb,
 )
 from tgbot.misc.helpers import (
     disable_previous_buttons,
@@ -48,42 +46,13 @@ logger = logging.getLogger(__name__)
 
 
 @user_router.message(CommandStart())
-async def start_user(message: Message, dialog_manager: DialogManager):
+async def start_user(_message: Message, dialog_manager: DialogManager):
     try:
         await dialog_manager.done()
     except NoContextError:
         pass
 
     await dialog_manager.start(UserSG.menu, mode=StartMode.RESET_STACK)
-
-
-@user_router.callback_query(MainMenu.filter(F.menu == "ask"))
-async def ask_question(
-    callback: CallbackQuery,
-    state: FSMContext,
-    user: Employee,
-    questions_repo: QuestionsRequestsRepo,
-):
-    active_questions = await questions_repo.questions.get_active_questions()
-    if user.user_id in [d.employee_userid for d in active_questions]:
-        await callback.answer("У тебя есть другой открытый вопрос", show_alert=True)
-        return
-
-    state_data = await state.get_data()
-
-    msg = await callback.message.edit_text(
-        """<b>🤔 Суть вопроса</b>
-
-Отправь вопрос и вложения одним сообщением""",
-        reply_markup=back_kb(),
-    )
-
-    await state.update_data(messages_with_buttons=[msg.message_id])
-    await state.set_state(AskQuestion.question)
-    logging.info(
-        f"{'[Админ]' if state_data.get('role') or user.role == 10 else '[Юзер]'} [{user.division}] {callback.from_user.username} ({callback.from_user.id}): Открыто меню нового вопроса"
-    )
-    await callback.answer()
 
 
 @user_router.message(AskQuestion.question)
@@ -620,60 +589,3 @@ async def cancel_question(
     else:
         await callback.answer("Вопрос не может быть отменен. Он уже в работе")
     await callback.answer()
-
-
-@user_router.message()
-async def default_message_handler(
-    message: Message,
-    state: FSMContext,
-    user: Employee,
-    questions_repo: QuestionsRequestsRepo,
-):
-    """Default handler for all unhandled user messages.
-    Sends start message if user is not in question state and doesn't have active questions.
-    """
-    # Проверяем FSM
-    current_state = await state.get_state()
-
-    logger.info(current_state)
-    # Пропускаем если у пользователя есть состояние
-    if current_state is not None:
-        return
-
-    # Проверяем есть ли у пользователя активные вопросы
-    try:
-        active_questions = await questions_repo.questions.get_active_questions()
-        logger.info(active_questions)
-        if user.user_id in [q.employee_userid for q in active_questions]:
-            return
-    except Exception as e:
-        logger.error(f"Error checking active questions for user {user.fullname}: {e}")
-        return
-
-    # Если мы оказались здесь - у пользователя нет активных вопросов и состояний в FSM
-    # Отправляем стартовое сообщение
-    employee_topics_today = await questions_repo.questions.get_questions_count_today(
-        employee_userid=user.user_id
-    )
-    employee_topics_month = (
-        await questions_repo.questions.get_questions_count_last_month(
-            employee_userid=user.fullname
-        )
-    )
-
-    await message.answer(
-        f"""👋 Привет, <b>{short_name(user.fullname)}</b>!
-
-Я - бот-вопросник
-
-<b>❓ Ты задал вопросов:</b>
-- За день {employee_topics_today}
-- За месяц {employee_topics_month}
-
-<i>Используй меню для управление ботом</i>""",
-        reply_markup=user_kb(is_role_changed=user.role == 10),
-    )
-
-    logging.info(
-        f"[Дефолт] {message.from_user.username} ({message.from_user.id}): Отправлено стартовое сообщение"
-    )

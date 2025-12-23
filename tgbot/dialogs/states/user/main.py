@@ -8,6 +8,7 @@ class UserSG(StatesGroup):
     menu = State()
 
 
-class AskQuestionSG(StatesGroup):
+class QuestionSG(StatesGroup):
     question_text = State()
     question_link = State()
+    confirmation = State()

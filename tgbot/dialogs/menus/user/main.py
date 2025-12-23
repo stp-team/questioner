@@ -5,12 +5,14 @@ from typing import Any
 from aiogram import F
 from aiogram_dialog import Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import (
+    Button,
     Row,
     SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.window import Window
 
+from tgbot.dialogs.events.user.main import start_question_dialog
 from tgbot.dialogs.getters.user.main import menu_getter
 from tgbot.dialogs.states.user.main import UserSG
 
@@ -36,7 +38,9 @@ menu_window = Window(
         when="is_employee",
     ),
     Row(
-        SwitchTo(Const("🤔 Задать вопрос"), id="question_new", state=UserSG.menu),
+        Button(
+            Const("🤔 Задать вопрос"), id="question_new", on_click=start_question_dialog
+        ),
         SwitchTo(Const("🔄 Возврат вопроса"), id="question_return", state=UserSG.menu),
         when="is_employee",
     ),
