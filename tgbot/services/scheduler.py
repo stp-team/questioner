@@ -454,8 +454,9 @@ async def send_attention_reminder_job(question_token: str):
         async with questioner_session_pool() as questioner_session:
             async with main_session_pool() as main_session:
                 questions_repo = QuestionsRequestsRepo(session=questioner_session)
+                main_repo = MainRequestsRepo(session=main_session)
                 await send_attention_reminder(
-                    bot, question_token, questions_repo, main_session
+                    bot, question_token, questions_repo, main_repo
                 )
 
     except Exception as e:
