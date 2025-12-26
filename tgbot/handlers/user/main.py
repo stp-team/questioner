@@ -580,9 +580,7 @@ async def regulation_not_found_handler(
         reply_markup=cancel_question_kb(token=new_question.token),
     )
 
-    # Запускаем таймер бездействия для нового вопроса
-    if new_question.status == "open" and new_question.activity_status_enabled:
-        await start_inactivity_timer(new_question.token, questions_repo)
+    # Таймер бездействия будет запущен только после назначения дежурного
 
     if user.username:
         user_fullname = (
@@ -724,7 +722,6 @@ async def default_message_handler(
     # Проверяем есть ли у пользователя активные вопросы
     try:
         active_questions = await questions_repo.questions.get_active_questions()
-        logger.info(active_questions)
         if user.user_id in [q.employee_userid for q in active_questions]:
             return
     except Exception as e:

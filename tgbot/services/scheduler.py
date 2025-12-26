@@ -347,6 +347,11 @@ async def start_inactivity_timer(question_token: str, questions_repo):
             group_id=question.group_id,
         )
 
+        # Проверяем, что у вопроса есть назначенный дежурный
+        if not question.duty_userid:
+            # Если дежурный не назначен, не запускаем таймер бездействия
+            return
+
         # Определяем эффективный статус активности
         activity_enabled = (
             question.activity_status_enabled
