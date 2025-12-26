@@ -6,15 +6,19 @@ services:
     restart: unless-stopped
     env_file:
       - ".env"
+    labels:
+      caddy: $WEBHOOK_DOMAIN
+      caddy.reverse_proxy: "{{upstreams ${WEBHOOK_PORT}}}"
+      caddy.handle: $WEBHOOK_PATH
 
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8443/health" ]
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:${WEBHOOK_PORT}/health" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
     depends_on:
-      redis_cache:
+      cache:
         condition: service_healthy
 
     logging:
@@ -26,6 +30,7 @@ services:
 
     networks:
       - stp_bots
+      - caddy
 
     deploy:
       resources:
@@ -54,6 +59,13 @@ services:
     networks:
       - stp_bots
 
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "valkey-cli -p $$REDIS_PORT -a $$REDIS_PASSWORD ping | grep -q PONG" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
     deploy:
       resources:
         limits:
@@ -67,4 +79,6 @@ volumes:
 
 networks:
   stp_bots:
+    external: true
+  caddy:
     external: true
