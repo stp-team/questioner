@@ -12,7 +12,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: stp-team/stpsher
+  IMAGE_NAME: stp-team/questioner
 
 jobs:
   build-and-push:
