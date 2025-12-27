@@ -6,9 +6,6 @@ from aiogram.types import CallbackQuery, Message
 from stp_database.models.STP import Employee
 from stp_database.repo.STP import MainRequestsRepo
 
-from tgbot.services.logger import setup_logging
-
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

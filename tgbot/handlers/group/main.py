@@ -25,7 +25,7 @@ from tgbot.keyboards.group.main import (
     QuestionAllowReturn,
     QuestionQualityDuty,
     closed_question_duty_kb,
-    question_quality_duty_kb,
+    question_finish_duty_kb,
 )
 from tgbot.keyboards.user.main import (
     ActivityStatusToggle,
@@ -33,8 +33,7 @@ from tgbot.keyboards.user.main import (
     finish_question_kb,
 )
 from tgbot.middlewares.MessagePairingMiddleware import store_message_connection
-from tgbot.misc.helpers import check_premium_emoji, short_name
-from tgbot.services.logger import setup_logging
+from tgbot.misc.helpers import check_premium_emoji, format_fullname, short_name
 from tgbot.services.scheduler import (
     restart_inactivity_timer,
     run_delete_timer,
@@ -44,7 +43,6 @@ from tgbot.services.scheduler import (
 
 topic_router = Router()
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -114,18 +112,11 @@ async def handle_q_message(
                 icon_custom_emoji_id=group_settings.get_setting("emoji_in_progress"),
             )
 
-            if user.username:
-                user_fullname = (
-                    f"<a href='t.me/{user.username}'>{short_name(user.fullname)}</a>"
-                )
-            else:
-                user_fullname = user.fullname
-
             try:
                 await message.answer(
                     f"""<b>👮‍♂️ Вопрос в работе</b>
 
-На вопрос отвечает <b>{user_fullname}</b>
+На вопрос отвечает <b>{format_fullname(user, True, True)}</b>
 
 <blockquote expandable><b>⚒️ Решено:</b> за день {duty_topics_today} / за месяц {duty_topics_month}</blockquote>""",
                     disable_web_page_preview=True,
@@ -134,7 +125,7 @@ async def handle_q_message(
                 await message.answer(
                     f"""<b>👮‍♂️ Вопрос в работе</b>
 
-На вопрос отвечает <b>{user_fullname}</b>
+На вопрос отвечает <b>{format_fullname(user, True, True)}</b>
 
 <blockquote expandable><b>⚒️ Решено:</b> за день {duty_topics_today} / за месяц {duty_topics_month}</blockquote>""",
                     disable_web_page_preview=True,
@@ -144,7 +135,7 @@ async def handle_q_message(
                 chat_id=employee.user_id,
                 text=f"""<b>👮‍♂️ Вопрос в работе</b>
 
-Дежурный <b>{user_fullname}</b> взял вопрос в работу""",
+Дежурный <b>{format_fullname(user, True, True)}</b> взял вопрос в работу""",
                 reply_markup=finish_question_kb(),
             )
 
@@ -514,10 +505,8 @@ async def change_q_return_status(
         await callback.answer("⛔ Возврат текущего вопроса был запрещен")
 
     await callback.message.edit_reply_markup(
-        reply_markup=question_quality_duty_kb(
-            token=callback_data.token,
-            show_quality=True if question.quality_duty is None else None,
-            allow_return=callback_data.allow_return,
+        reply_markup=question_finish_duty_kb(
+            question=question,
         )
     )
     await callback.answer()

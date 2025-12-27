@@ -14,7 +14,6 @@ from tgbot.dialogs.states.user.main import UserSG
 from tgbot.keyboards.user.main import (
     CancelQuestion,
 )
-from tgbot.services.logger import setup_logging
 from tgbot.services.scheduler import (
     remove_question_timer,
 )
@@ -24,7 +23,6 @@ user_router.message.filter(F.chat.type == "private")
 user_router.callback_query.filter(F.message.chat.type == "private")
 
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

@@ -16,7 +16,6 @@ from stp_database.repo.STP import MainRequestsRepo
 from tgbot.config import load_config
 from tgbot.keyboards.group.main import closed_question_duty_kb
 from tgbot.keyboards.user.main import closed_question_specialist_kb
-from tgbot.services.logger import setup_logging
 
 config = load_config(".env")
 
@@ -71,7 +70,6 @@ else:
 # Global registry to store picklable dependencies
 _scheduler_registry = {}
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

@@ -19,12 +19,10 @@ from tgbot.keyboards.admin.main import (
 from tgbot.keyboards.user.main import user_kb
 from tgbot.misc.dicts import role_names
 from tgbot.misc.helpers import short_name
-from tgbot.services.logger import setup_logging
 
 admin_router = Router()
 admin_router.message.filter(AdminFilter())
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

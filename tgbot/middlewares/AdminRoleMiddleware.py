@@ -13,9 +13,7 @@ from aiogram.types import (
 from stp_database.models.STP import Employee
 
 from tgbot.misc.dicts import group_admin_titles
-from tgbot.services.logger import setup_logging
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

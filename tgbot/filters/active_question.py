@@ -6,9 +6,6 @@ from sqlalchemy import Sequence
 from stp_database.models.Questions import Question
 from stp_database.repo.Questions import QuestionsRequestsRepo
 
-from tgbot.services.logger import setup_logging
-
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

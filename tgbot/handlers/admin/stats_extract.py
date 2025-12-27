@@ -16,13 +16,11 @@ from tgbot.keyboards.admin.stats_extract import (
     division_selection_kb,
     extract_kb,
 )
-from tgbot.services.logger import setup_logging
 
 stats_router = Router()
 stats_router.message.filter(AdminFilter())
 stats_router.callback_query.filter(AdminFilter())
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

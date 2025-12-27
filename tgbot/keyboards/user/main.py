@@ -157,48 +157,55 @@ def finish_question_kb() -> ReplyKeyboardMarkup:
     return keyboard
 
 
-def question_quality_specialist_kb(
-    token: str,
+def question_finish_employee_kb(
+    question: Question,
 ) -> InlineKeyboardMarkup:
     """Клавиатура оценки помощи с вопросом со стороны специалиста.
 
-    :param str token: Уникальный токен вопроса
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="👍 Да",
-                callback_data=QuestionQualitySpecialist(
-                    answer=True, token=token
-                ).pack(),
-            ),
-            InlineKeyboardButton(
-                text="👎 Нет",
-                callback_data=QuestionQualitySpecialist(
-                    answer=False, token=token
-                ).pack(),
-            ),
-        ],
-        [
+    buttons = []
+
+    if not question.quality_employee:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text="👍 Да",
+                    callback_data=QuestionQualitySpecialist(
+                        answer=True, token=question.token
+                    ).pack(),
+                ),
+                InlineKeyboardButton(
+                    text="👎 Нет",
+                    callback_data=QuestionQualitySpecialist(
+                        answer=False, token=question.token
+                    ).pack(),
+                ),
+            ],
+        )
+
+    if question.allow_return:
+        buttons.append([
             InlineKeyboardButton(
                 text="🔄 Вернуть вопрос",
                 callback_data=QuestionQualitySpecialist(
-                    return_question=True, token=token
+                    return_question=True, token=question.token
                 ).pack(),
             )
-        ],
-        [
-            InlineKeyboardButton(
-                text="🤔 Новый вопрос", callback_data=MainMenu(menu="ask").pack()
-            )
-        ],
+        ])
+
+    buttons.append([
+        InlineKeyboardButton(
+            text="🤔 Новый вопрос", callback_data=MainMenu(menu="ask").pack()
+        )
+    ])
+    buttons.append(
         [
             InlineKeyboardButton(
                 text="🏠 Главное меню", callback_data=MainMenu(menu="main").pack()
             )
         ],
-    ]
+    )
 
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=buttons,

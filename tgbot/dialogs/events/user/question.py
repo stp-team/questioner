@@ -161,7 +161,9 @@ async def on_confirm(
 <blockquote expandable><b>👔 Должность:</b> {user.position}
 <b>👑 Руководитель:</b> {format_fullname(head, True, True)}
 
-<b>❓ Вопросов:</b> за день {employee_topics_today} / за месяц {employee_topics_month}</blockquote>"""
+<b>❓ Вопросов:</b> за день {employee_topics_today} / за месяц {employee_topics_month}</blockquote>
+
+<i>Токен вопроса: <code>{new_question.token}</code>"""
 
         topic_info_msg = await callback.bot.send_message(
             chat_id=new_question.group_id,

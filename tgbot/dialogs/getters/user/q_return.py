@@ -52,11 +52,17 @@ async def confirmation_getter(
             break
 
     duty = await stp_repo.employee.get_users(user_id=selected_question.duty_userid)
+    regulation = (
+        f"<a href='{selected_question.clever_link}'>Clever</a>"
+        if selected_question.clever_link
+        else "Не указан"
+    )
 
     return {
         "question": selected_question,
         "text": selected_question.question_text if selected_question else "",
         "duty": format_fullname(duty, True, True),
+        "regulation": regulation,
         "start_time": selected_question.start_time.strftime("%d.%m.%Y %H:%M"),
         "end_time": selected_question.end_time.strftime("%d.%m.%Y %H:%M"),
         "token": selected_question.token if selected_question else "",

@@ -10,10 +10,9 @@ from stp_database.repo.Questions import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.topic import IsTopicMessageWithCommand
-from tgbot.keyboards.group.main import FinishedQuestion, question_quality_duty_kb
-from tgbot.keyboards.user.main import question_quality_specialist_kb
-from tgbot.misc.helpers import short_name
-from tgbot.services.logger import setup_logging
+from tgbot.keyboards.group.main import FinishedQuestion, question_finish_duty_kb
+from tgbot.keyboards.user.main import question_finish_employee_kb
+from tgbot.misc.helpers import format_fullname, short_name
 from tgbot.services.scheduler import (
     start_attention_reminder,
     stop_inactivity_timer,
@@ -21,7 +20,6 @@ from tgbot.services.scheduler import (
 
 topic_cmds_router = Router()
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -62,10 +60,8 @@ async def end_q_cmd(
 
 👮‍♂️ Дежурный: <b>{user.fullname if user.fullname else "Не закреплен"}</b>
 👍 Специалист <b>не мог решить вопрос самостоятельно</b>""",
-                        reply_markup=question_quality_duty_kb(
-                            token=question.token,
-                            show_quality=None,
-                            allow_return=question.allow_return,
+                        reply_markup=question_finish_duty_kb(
+                            question=question,
                         ),
                     )
                 else:
@@ -76,10 +72,8 @@ async def end_q_cmd(
                         
 👮‍♂️ Дежурный: <b>{user.fullname}</b>
 👎 Специалист <b>мог решить вопрос самостоятельно</b>""",
-                        reply_markup=question_quality_duty_kb(
-                            token=question.token,
-                            show_quality=None,
-                            allow_return=question.allow_return,
+                        reply_markup=question_finish_duty_kb(
+                            question=question,
                         ),
                     )
             else:
@@ -90,10 +84,8 @@ async def end_q_cmd(
                     
 👮‍♂️ Дежурный: <b>{user.fullname}</b>
 Оцени, мог ли специалист решить его самостоятельно""",
-                    reply_markup=question_quality_duty_kb(
-                        token=question.token,
-                        show_quality=True,
-                        allow_return=question.allow_return,
+                    reply_markup=question_finish_duty_kb(
+                        question=question,
                     ),
                 )
 
@@ -122,7 +114,7 @@ async def end_q_cmd(
                 chat_id=employee.user_id,
                 text=f"""Дежурный <b>{short_name(user.fullname)}</b> закрыл вопрос
 Оцени, помогли ли тебе решить его""",
-                reply_markup=question_quality_specialist_kb(token=question.token),
+                reply_markup=question_finish_employee_kb(question=question),
             )
 
             logger.info(
@@ -204,7 +196,7 @@ async def release_q_cmd(
                 chat_id=employee.user_id,
                 text=f"""<b>🕊️ Дежурный покинул чат</b>
 
-Дежурный <b>{short_name(user.fullname)}</b> освободил вопрос. Ожидай повторного подключения старшего""",
+Дежурный <b>{format_fullname(user, True, True)}</b> освободил вопрос. Ожидай повторного подключения дежурного""",
             )
             await start_attention_reminder(question.token, questions_repo)
             logger.info(

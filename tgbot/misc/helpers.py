@@ -6,9 +6,7 @@ from aiogram.types import Message
 from stp_database.models.STP import Employee
 
 from tgbot.config import load_config
-from tgbot.services.logger import setup_logging
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 config = load_config(".env")

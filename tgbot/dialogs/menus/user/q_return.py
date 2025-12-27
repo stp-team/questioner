@@ -50,12 +50,13 @@ confirmation_window = Window(
     Format(
         """✅ <b>Подтверждение возврата</b>
 
-📝 <b>Выбранный вопрос</b>
+❓ <b>Выбранный вопрос</b>
 <blockquote>{text}</blockquote>
 
-<b>Дежурный:</b> {duty}
-<b>Начало диалога:</b> <code>{start_time}</code>
-<b>Конец диалога:</b> <code>{end_time}</code>
+👮‍♂️ <b>Дежурный:</b> {duty}
+🗃️ <b>Регламент:</b> {regulation}
+🚀 <b>Начало диалога:</b> <code>{start_time}</code>
+🔒 <b>Конец диалога:</b> <code>{end_time}</code>
 
 <i>Токен вопроса: <code>{token}</code></i>
 

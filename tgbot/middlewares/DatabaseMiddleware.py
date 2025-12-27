@@ -8,9 +8,7 @@ from stp_database.repo.Questions import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.config import Config
-from tgbot.services.logger import setup_logging
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

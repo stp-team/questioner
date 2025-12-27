@@ -13,11 +13,9 @@ from tgbot.keyboards.group.settings import (
     SettingsEmojiPage,
     settings_emoji,
 )
-from tgbot.services.logger import setup_logging
 
 main_topic_cmds_router = Router()
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
