@@ -31,8 +31,10 @@ async def on_message_input(
     message: Message, _widget, dialog_manager: DialogManager, **_kwargs
 ):
     """Сохранение сообщения пользователя для последующего копирования."""
+    message_text = message.text or message.caption or ""
+
     dialog_manager.dialog_data["user_message"] = {
-        "text": message.text or message.caption or "",
+        "text": message_text,
         "message_id": message.message_id,
         "chat_id": message.chat.id,
     }
@@ -42,7 +44,25 @@ async def on_message_input(
         dialog_manager.dialog_data["user_message"]["document"] = (
             message.document.file_id
         )
-    await dialog_manager.next()
+
+    # Проверяем, есть ли ссылка на Клевер в тексте сообщения
+    extracted_link = extract_clever_link(message_text)
+
+    if extracted_link:
+        try:
+            # Валидируем найденную ссылку
+            validated_link = validate_link(extracted_link)
+
+            # Сохраняем ссылку в данные диалога
+            dialog_manager.dialog_data["link"] = validated_link
+
+            # Переходим сразу к подтверждению, пропуская этап ввода ссылки
+            await dialog_manager.switch_to(QuestionSG.confirmation)
+        except ValueError:
+            # Если ссылка невалидна, переходим к обычному этапу ввода ссылки
+            await dialog_manager.next()
+    else:
+        await dialog_manager.next()
 
 
 async def check_link(
@@ -80,7 +100,7 @@ async def check_link(
         if extracted_link in forbidden_links:
             return "❌ Ссылка содержит запрещенную страницу. Отправь корректную ссылку на регламент"
 
-    dialog_manager.dialog_data["regulation_link"] = text
+    dialog_manager.dialog_data["link"] = text
     await dialog_manager.next()
 
 

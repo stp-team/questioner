@@ -100,11 +100,11 @@ async def on_shutdown_webhook(bot: Bot) -> None:
     logger.info("[Вебхук] Вебхук удален")
 
 
-async def health_check(request) -> Response:
+async def health_check(_request) -> Response:
     """Эндпоинт для проверки здоровья приложения.
 
     Args:
-        request: HTTP запрос
+        _request: HTTP запрос
 
     Returns:
         Response: HTTP ответ со статусом здоровья

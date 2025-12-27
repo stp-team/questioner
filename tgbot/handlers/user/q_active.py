@@ -17,11 +17,6 @@ from aiogram.types import (
 from stp_database.models.Questions import MessagesPair, Question
 from stp_database.models.STP import Employee
 from stp_database.repo.Questions import QuestionsRequestsRepo
-from stp_database.models.Questions import MessagesPair, Question
-from stp_database.models.STP import (
-    Employee,
-)
-from stp_database.repo.Questions import QuestionsRequestsRepo
 
 from tgbot.filters.active_question import ActiveQuestion, ActiveQuestionWithCommand
 from tgbot.keyboards.group.main import question_finish_duty_kb

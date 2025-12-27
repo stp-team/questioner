@@ -14,7 +14,6 @@ from tgbot.keyboards.group.settings import (
     settings_emoji,
 )
 from tgbot.misc.helpers import format_fullname
-from tgbot.misc.helpers import format_fullname
 
 main_topic_cmds_router = Router()
 
@@ -72,7 +71,6 @@ async def question_info(
 @main_topic_cmds_router.message(Command("active"), IsMainTopicMessageWithCommand())
 async def active_questions_cmd(
     message: Message,
-    user: Employee,
     questions_repo: QuestionsRequestsRepo,
     main_repo: MainRequestsRepo,
 ):

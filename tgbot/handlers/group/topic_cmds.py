@@ -10,10 +10,6 @@ from stp_database.models.STP import (
 )
 from stp_database.repo.Questions import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
-from stp_database.models.Questions import Question
-from stp_database.models.STP import Employee
-from stp_database.repo.Questions import QuestionsRequestsRepo
-from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.filters.topic import IsTopicMessageWithCommand
 from tgbot.keyboards.group.main import FinishedQuestion, question_finish_duty_kb

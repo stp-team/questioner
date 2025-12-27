@@ -45,7 +45,7 @@ class TgBot:
             webhook_domain=webhook_domain,
             webhook_path=webhook_path,
             webhook_secret=webhook_secret,
-            webhook_port=webhook_port
+            webhook_port=webhook_port,
         )
 
 
