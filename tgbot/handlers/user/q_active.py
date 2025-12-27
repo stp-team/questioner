@@ -52,47 +52,52 @@ async def active_question_end(
 Не удалось найти вопрос в базе""")
         return
 
-    if question.status != "closed":
-        # Останавливаем таймер автозакрытия
-        stop_inactivity_timer(question.token)
+    if question.status == "closed":
+        await message.reply("""<b>⚠️ Предупреждение</b>
 
-        # Обновляем статус
-        await questions_repo.questions.update_question(
-            token=question.token,
-            end_time=datetime.datetime.now(tz=pytz.timezone("Asia/Yekaterinburg")),
-            status="closed",
-        )
+Вопрос уже закрыт""")
+        return
 
-        # Уведомляем специалиста
-        await message.reply(
-            text="🔒 <b>Вопрос закрыт</b>", reply_markup=ReplyKeyboardRemove()
-        )
-        await message.answer(
-            """
+    # Останавливаем таймер автозакрытия
+    stop_inactivity_timer(question.token)
+
+    # Обновляем статус
+    await questions_repo.questions.update_question(
+        token=question.token,
+        end_time=datetime.datetime.now(tz=pytz.timezone("Asia/Yekaterinburg")),
+        status="closed",
+    )
+
+    # Уведомляем специалиста
+    await message.reply(
+        text="🔒 <b>Вопрос закрыт</b>", reply_markup=ReplyKeyboardRemove()
+    )
+    await message.answer(
+        """
 Оцени, помогли ли тебе решить вопрос""",
-            reply_markup=question_finish_employee_kb(question=question),
-        )
+        reply_markup=question_finish_employee_kb(question=question),
+    )
 
-        # Уведомляем дежурного
-        await message.bot.send_message(
-            chat_id=question.group_id,
-            message_thread_id=question.topic_id,
-            text=f"""🔒 <b>Вопрос закрыт</b>
+    # Уведомляем дежурного
+    await message.bot.send_message(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+        text=f"""🔒 <b>Вопрос закрыт</b>
 
 Специалист <b>{format_fullname(user, True, True)}</b> закрыл вопрос
 
 Ответь, мог ли специалист решить вопрос самостоятельно
 
 <i>Если вопрос не решен - ты можешь вернуть его в работу</i>""",
-            reply_markup=question_finish_duty_kb(
-                question=question,
-            ),
-        )
+        reply_markup=question_finish_duty_kb(
+            question=question,
+        ),
+    )
 
+    # Закрываем топик
     group_settings = await questions_repo.settings.get_settings_by_group_id(
         group_id=question.group_id,
     )
-
     await message.bot.edit_forum_topic(
         chat_id=question.group_id,
         message_thread_id=question.topic_id,

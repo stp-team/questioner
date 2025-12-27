@@ -119,105 +119,99 @@ async def release_q_cmd(
         group_id=message.chat.id, topic_id=message.message_thread_id
     )
 
-    if question is not None:
-        if question.duty_userid is not None and (
-            question.duty_userid == user.user_id or user.role == 10
-        ):
-            group_settings = await questions_repo.settings.get_settings_by_group_id(
-                group_id=question.group_id,
-            )
+    if not question:
+        await message.answer("""<b>⚠️ Предупреждение</b>
 
-            await questions_repo.questions.update_question(
-                token=question.token,
-                duty_userid=None,
-                status="open",
-            )
+Не удалось найти закрываемый вопрос""")
+        return
 
-            employee: Employee = await stp_repo.employee.get_users(
-                user_id=question.employee_userid
-            )
+    if not question.duty_userid:
+        await message.reply("""<b>⚠️ Предупреждение</b>
 
-            await message.bot.edit_forum_topic(
-                chat_id=question.group_id,
-                message_thread_id=question.topic_id,
-                icon_custom_emoji_id=group_settings.get_setting("emoji_open"),
-            )
-            await message.answer("""<b>🕊️ Вопрос освобожден</b>
+Это чат сейчас никем не занят!""")
+        return
 
-Для взятия вопроса в работу напиши сообщение в эту тему""")
-
-            await message.bot.send_message(
-                chat_id=employee.user_id,
-                text=f"""<b>🕊️ Дежурный покинул чат</b>
-
-Дежурный <b>{format_fullname(user, True, True)}</b> освободил вопрос. Ожидай повторного подключения дежурного""",
-            )
-            await start_attention_reminder(question.token, questions_repo)
-            logger.info(
-                f"[Вопрос] - [Освобождение] Пользователь {message.from_user.username} ({message.from_user.id}): Вопрос {question.token} освобожден"
-            )
-        elif question.duty_userid and question.duty_userid != user.user_id:
-            await message.reply("""<b>⚠️ Предупреждение</b>
+    if question.duty_userid != user.user_id and user.role != 10:
+        await message.reply("""<b>⚠️ Предупреждение</b>
 
 Это не твой чат!
 
 <i>Твое сообщение не отобразится специалисту</i>""")
-            logger.warning(
-                f"[Вопрос] - [Освобождение] Пользователь {message.from_user.username} ({message.from_user.id}): Попытка закрытия вопроса {question.token} неуспешна. Вопрос принадлежит другому старшему"
-            )
-        elif question.duty_userid is None:
-            await message.reply("""<b>⚠️ Предупреждение</b>
+        return
 
-Это чат сейчас никем не занят!""")
-            logger.warning(
-                f"[Вопрос] - [Освобождение] Пользователь {message.from_user.username} ({message.from_user.id}): Попытка освобождения вопроса {question.token} неуспешна. Вопрос {question.token} никем не занят"
-            )
-    else:
-        await message.answer("""<b>⚠️ Ошибка</b>
+    # Обновляем статус вопроса
+    await questions_repo.questions.update_question(
+        token=question.token,
+        duty_userid=None,
+        status="open",
+    )
 
-Не удалось найти текущую тему в базе, закрываю""")
-        await message.bot.close_forum_topic(
-            chat_id=message.chat.id,
-            message_thread_id=message.message_thread_id,
-        )
-        logger.error(
-            f"[Вопрос] - [Освобождение] Пользователь {message.from_user.username} ({message.from_user.id}): Попытка освобождения вопроса неуспешна. Не удалось найти вопрос в базе с TopicId = {message.message_thread_id}"
-        )
+    # Обновляем эмодзи топика
+    group_settings = await questions_repo.settings.get_settings_by_group_id(
+        group_id=question.group_id,
+    )
+    await message.bot.edit_forum_topic(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+        icon_custom_emoji_id=group_settings.get_setting("emoji_open"),
+    )
+
+    # Уведомляем дежурных
+    await message.answer("""<b>🕊️ Вопрос освобожден</b>
+
+Для взятия вопроса в работу напиши сообщение в эту тему""")
+
+    # Уведомляем специалиста
+    employee: Employee = await stp_repo.employee.get_users(
+        user_id=question.employee_userid
+    )
+    await message.bot.send_message(
+        chat_id=employee.user_id,
+        text=f"""<b>🕊️ Дежурный покинул чат</b>
+
+Дежурный <b>{format_fullname(user, True, True)}</b> освободил вопрос. Ожидай повторного подключения дежурного""",
+    )
+
+    # Запускаем таймер внимания
+    await start_attention_reminder(question.token, questions_repo)
 
 
 @topic_cmds_router.callback_query(FinishedQuestion.filter(F.action == "release"))
 async def release_q_cb(
-    callback: CallbackQuery,
+    event: CallbackQuery,
     questions_repo: QuestionsRequestsRepo,
 ):
-    await callback.answer()
-
     question: Question = await questions_repo.questions.get_question(
-        group_id=callback.message.chat.id, topic_id=callback.message.message_thread_id
+        group_id=event.message.chat.id, topic_id=event.message.message_thread_id
     )
 
-    if question:
-        group_settings = await questions_repo.settings.get_settings_by_group_id(
-            group_id=question.group_id,
-        )
+    if not question:
+        await event.message.answer("""<b>⚠️ Предупреждение</b>
 
-        await questions_repo.questions.update_question(
-            token=question.token,
-            duty_userid=None,
-            status="open",
-        )
+Не удалось найти закрываемый вопрос""")
+        return
 
-        await callback.message.answer("""<b>🕊️ Вопрос освобожден</b>
+    # Обновляем статус вопроса
+    await questions_repo.questions.update_question(
+        token=question.token,
+        duty_userid=None,
+        status="open",
+    )
 
-Для взятия вопроса в работу напиши сообщение в эту тему""")
-        logger.info(
-            f"[Вопрос] - [Освобождение] Пользователь {callback.from_user.username} ({callback.from_user.id}): Вопрос {question.token} освобожден"
-        )
+    # Уведомляем дежурных
+    await event.message.answer("""<b>🕊️ Вопрос освобожден</b>
 
-        await callback.bot.edit_forum_topic(
-            chat_id=question.group_id,
-            message_thread_id=question.topic_id,
-            icon_custom_emoji_id=group_settings.get_setting("emoji_open"),
-        )
+Для взятия вопроса в работу напишите сообщение в эту тему""")
 
-        await start_attention_reminder(question.token, questions_repo)
+    # Обновляем эмодзи топика
+    group_settings = await questions_repo.settings.get_settings_by_group_id(
+        group_id=question.group_id,
+    )
+    await event.bot.edit_forum_topic(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+        icon_custom_emoji_id=group_settings.get_setting("emoji_open"),
+    )
+
+    # Запускаем таймер внимания
+    await start_attention_reminder(question.token, questions_repo)

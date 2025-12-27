@@ -13,6 +13,7 @@ from tgbot.keyboards.group.settings import (
     SettingsEmojiPage,
     settings_emoji,
 )
+from tgbot.misc.helpers import format_fullname
 
 main_topic_cmds_router = Router()
 
@@ -23,17 +24,10 @@ logger = logging.getLogger(__name__)
 async def question_info(
     message: Message,
     command: CommandObject,
-    user: Employee,
     questions_repo: QuestionsRequestsRepo,
     stp_repo: MainRequestsRepo,
 ):
     """Получение информации о вопросе."""
-    if user.role not in [2, 10]:
-        await message.reply(
-            "Доступ к информации о вопросах есть только у руководителей"
-        )
-        return
-
     # Валидация аргументов команды
     if not command.args:
         await message.reply("Пример команды: /question [токен вопроса]")
@@ -50,20 +44,23 @@ async def question_info(
         duty = await stp_repo.employee.get_users(user_id=question.duty_userid)
         employee = await stp_repo.employee.get_users(user_id=question.employee_userid)
 
-        response = f"""<b>Информация о вопросе</b>
+        response = f"""❓ <b>Информация о вопросе</b>
 
-<code>{token}</code>
+🤔 <b>Вопрошающий:</b> <b>{format_fullname(employee, True, True)}</b>
+👮‍♂️ <b>Дежурный:</b> <b>{format_fullname(duty, True, True)}</b>
 
-Дежурный: <a href='t.me/{duty.username}'>{duty.fullname}</a>
-Вопрошающий: <a href='t.me/{employee.username}'>{employee.fullname}</a>
-
-Текст вопроса:
+❓ <b>Изначальный вопрос:</b>
 <blockquote expandable>{question.question_text}</blockquote>
 
-Возврат: {"Разрешен" if question.allow_return else "Запрещен"}
+🚀 <b>Начало диалога:</b> <code>{question.start_time.strftime("%d.%m.%Y %H:%M")}</code>
+🔒 <b>Конец диалога:</b> <code>{question.end_time.strftime("%d.%m.%Y %H:%M")}</code>
 
-<blockquote expandable>ID группы: {question.group_id}
-ID темы: {question.topic_id}</blockquote>"""
+🗃️ <b>Регламент:</b> {question.clever_link if question.clever_link else "Нет"}
+🔄 <b>Возврат:</b> {"Да" if question.allow_return else "Нет"}
+
+<b>ID группы:</b> <code>{question.group_id}</code>
+<b>ID темы:</b> <code>{question.topic_id}</code>
+<b>Токен вопроса:</b> <code>{question.token}</code>"""
 
     else:
         response = f"Не удалось найти вопрос с токеном {token}"

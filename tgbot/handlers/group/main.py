@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from typing import Sequence
 
 import pytz
 from aiogram import F, Router
@@ -415,9 +414,9 @@ async def return_q_duty(
         group_id=question.group_id,
     )
 
-    available_to_return_questions: Sequence[
-        Question
-    ] = await questions_repo.questions.get_available_to_return_questions()
+    available_to_return_questions = (
+        await questions_repo.questions.get_available_to_return_questions()
+    )
     active_questions = await questions_repo.questions.get_active_questions()
 
     if (

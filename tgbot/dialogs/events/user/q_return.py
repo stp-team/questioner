@@ -122,7 +122,7 @@ async def on_confirm_return(
 {duty_info}
 
 ❓ <b>Изначальный вопрос:</b>
-<blockquote expandable><i>{question.question_text}</i></blockquote>""",
+<blockquote expandable>{question.question_text}</blockquote>""",
         reply_markup=reopened_question_kb(),
     )
 
