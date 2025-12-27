@@ -62,25 +62,10 @@ class DatabaseMiddleware(BaseMiddleware):
                         return result
 
             except (OperationalError, DBAPIError, DisconnectionError) as e:
-                if "Connection is busy" in str(e) or "HY000" in str(e):
-                    retry_count += 1
-                    logger.warning(
-                        f"[DatabaseMiddleware] Database connection error, retry {retry_count}/{max_retries}: {e}"
-                    )
-                    if retry_count >= max_retries:
-                        logger.error(
-                            f"[DatabaseMiddleware] All database connection attempts exhausted: {e}"
-                        )
-                        if isinstance(event, Message):
-                            await event.reply(
-                                "⚠️ Временные проблемы с базой данных. Попробуйте позже."
-                            )
-                        return None
-                else:
-                    logger.error(f"[DatabaseMiddleware] Critical database error: {e}")
-                    return None
+                logger.error(f"[DatabaseMiddleware] Critical database error: {e}")
+                return None
             except Exception as e:
-                logger.error(f"[DatabaseMiddleware] Unexpected error: {e}")
+                logger.error(f"Unexpected error: {e}")
                 return None
 
         return None

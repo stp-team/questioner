@@ -81,7 +81,7 @@ async def check_link(
 
 
 async def on_confirm(
-    callback: CallbackQuery, _button, dialog_manager: DialogManager, **_kwargs
+    event: CallbackQuery, _button, dialog_manager: DialogManager, **_kwargs
 ):
     """Обработка подтверждения отправки вопроса."""
     # Получаем данные из контекста
@@ -96,7 +96,7 @@ async def on_confirm(
     # Проверяем активные вопросы
     active_questions = await questions_repo.questions.get_active_questions()
     if user.user_id in [q.employee_userid for q in active_questions]:
-        await callback.answer("У тебя уже есть активный вопрос")
+        await event.answer("У тебя уже есть активный вопрос")
         await dialog_manager.done()
         return
 
@@ -106,7 +106,7 @@ async def on_confirm(
     question_text = user_message.get("text", "")
 
     if not question_text or question_text.strip() == "":
-        await callback.answer("❌ Вопрос не может быть пустым")
+        await event.answer("❌ Вопрос не может быть пустым")
         await dialog_manager.done()
         return
 
@@ -128,7 +128,7 @@ async def on_confirm(
 
     try:
         # Создаем тему форума
-        new_topic = await callback.bot.create_forum_topic(
+        new_topic = await event.bot.create_forum_topic(
             chat_id=target_forum_id,
             name=f"{user.division} | {short_name(user.fullname)}"
             if group_settings.get_setting("show_division")
@@ -140,7 +140,7 @@ async def on_confirm(
         new_question = await questions_repo.questions.add_question(
             group_id=target_forum_id,
             topic_id=new_topic.message_thread_id,
-            employee_userid=callback.from_user.id,
+            employee_userid=event.from_user.id,
             start_time=datetime.datetime.now(tz=pytz.timezone("Asia/Yekaterinburg")),
             question_text=question_text,
             clever_link=regulation_link,
@@ -148,7 +148,7 @@ async def on_confirm(
         )
 
         # Отправляем сообщение об успехе
-        await callback.message.edit_text(
+        await event.message.answer(
             """<b>✅ Успешно</b>
 
 Вопрос передан на рассмотрение, в скором времени тебе ответят""",
@@ -163,9 +163,9 @@ async def on_confirm(
 
 <b>❓ Вопросов:</b> за день {employee_topics_today} / за месяц {employee_topics_month}</blockquote>
 
-<i>Токен вопроса: <code>{new_question.token}</code>"""
+<i>Токен вопроса: <code>{new_question.token}</code></i>"""
 
-        topic_info_msg = await callback.bot.send_message(
+        topic_info_msg = await event.bot.send_message(
             chat_id=new_question.group_id,
             message_thread_id=new_topic.message_thread_id,
             text=topic_text,
@@ -179,7 +179,7 @@ async def on_confirm(
         )
 
         # Копируем сообщение пользователя в тему
-        await callback.bot.copy_message(
+        await event.bot.copy_message(
             chat_id=new_question.group_id,
             message_thread_id=new_topic.message_thread_id,
             from_chat_id=user_message.get("chat_id"),
@@ -187,7 +187,7 @@ async def on_confirm(
         )
 
         # Закрепляем информационное сообщение
-        await callback.bot.pin_chat_message(
+        await event.bot.pin_chat_message(
             chat_id=new_question.group_id,
             message_id=topic_info_msg.message_id,
             disable_notification=True,
@@ -197,15 +197,17 @@ async def on_confirm(
         await start_attention_reminder(new_question.token, questions_repo)
 
         logging.info(
-            f"[Dialog] {callback.from_user.username} ({callback.from_user.id}): Создан новый вопрос {new_question.token}"
+            f"[Dialog] {event.from_user.username} ({event.from_user.id}): Создан новый вопрос {new_question.token}"
         )
 
-        await callback.answer(
+        await dialog_manager.done(show_mode=ShowMode.NO_UPDATE)
+        await event.message.delete()
+
+        await event.answer(
             "Вопрос передан на рассмотрение, в скором времени тебе ответят"
         )
-        await dialog_manager.done(show_mode=ShowMode.NO_UPDATE)
 
     except Exception as e:
         logging.error(f"Ошибка при создании вопроса: {e}")
-        await callback.answer("❌ Произошла ошибка при создании вопроса")
+        await event.answer("❌ Произошла ошибка при создании вопроса")
         await dialog_manager.done()

@@ -11,8 +11,8 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.window import Window
 
+from tgbot.dialogs.events.user.q_create import start_question_dialog
 from tgbot.dialogs.events.user.q_return import start_q_return_dialog
-from tgbot.dialogs.events.user.question import start_question_dialog
 from tgbot.dialogs.getters.user.main import menu_getter
 from tgbot.dialogs.states.user.main import UserSG
 

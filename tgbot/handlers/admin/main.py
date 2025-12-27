@@ -2,11 +2,11 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters import CommandStart
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from stp_database.models.STP import Employee
-from stp_database.repo.Questions.requests import QuestionsRequestsRepo
+from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog.api.exceptions import NoContextError
 
+from tgbot.dialogs.states.admin.main import AdminSG
 from tgbot.filters.admin import AdminFilter
 
 admin_router = Router()
@@ -19,8 +19,12 @@ logger = logging.getLogger(__name__)
 
 @admin_router.message(CommandStart())
 async def admin_start(
-    message: Message,
-    state: FSMContext,
-    user: Employee,
-    questions_repo: QuestionsRequestsRepo,
-) -> None: ...
+    _message: Message,
+    dialog_manager: DialogManager,
+) -> None:
+    try:
+        await dialog_manager.done()
+    except NoContextError as exc:
+        logger.debug("No active dialog to finish on /start: %s", exc)
+
+    await dialog_manager.start(AdminSG.menu, mode=StartMode.RESET_STACK)

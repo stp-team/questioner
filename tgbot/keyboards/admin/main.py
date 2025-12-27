@@ -6,10 +6,6 @@ class AdminMenu(CallbackData, prefix="admin_menu"):
     menu: str
 
 
-class ChangeRole(CallbackData, prefix="role"):
-    role: str
-
-
 class SelectDivision(CallbackData, prefix="select_division"):
     division: str
 
