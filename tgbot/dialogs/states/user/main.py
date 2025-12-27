@@ -17,3 +17,8 @@ class QuestionSG(StatesGroup):
 class ReturnSG(StatesGroup):
     menu = State()
     confirmation = State()
+
+
+class HistorySG(StatesGroup):
+    menu = State()
+    details = State()

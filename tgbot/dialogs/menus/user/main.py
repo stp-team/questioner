@@ -11,6 +11,7 @@ from aiogram_dialog.widgets.kbd import (
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.window import Window
 
+from tgbot.dialogs.events.user.history import start_history_dialog
 from tgbot.dialogs.events.user.q_create import start_question_dialog
 from tgbot.dialogs.events.user.q_return import start_q_return_dialog
 from tgbot.dialogs.getters.user.main import menu_getter
@@ -47,6 +48,11 @@ menu_window = Window(
             on_click=start_q_return_dialog,
         ),
         when="is_employee",
+    ),
+    Button(
+        Const("📜 История вопросов"),
+        id="questions_history",
+        on_click=start_history_dialog,
     ),
     getter=menu_getter,
     state=UserSG.menu,
