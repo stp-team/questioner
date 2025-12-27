@@ -14,6 +14,7 @@ from tgbot.keyboards.group.settings import (
     settings_emoji,
 )
 from tgbot.misc.helpers import format_fullname
+from tgbot.misc.helpers import format_fullname
 
 main_topic_cmds_router = Router()
 
@@ -66,6 +67,64 @@ async def question_info(
         response = f"Не удалось найти вопрос с токеном {token}"
 
     await message.reply(response, disable_web_page_preview=True)
+
+
+@main_topic_cmds_router.message(Command("active"), IsMainTopicMessageWithCommand())
+async def active_questions_cmd(
+    message: Message,
+    user: Employee,
+    questions_repo: QuestionsRequestsRepo,
+    main_repo: MainRequestsRepo,
+):
+    """Получение всех активных вопросов в группе (статус != 'closed')."""
+    # Получаем все вопросы в работе
+    all_questions = await questions_repo.questions.get_questions(
+        group_id=message.chat.id, status="in_progress"
+    )
+
+    if not all_questions:
+        await message.reply("В данной группе нет активных вопросов")
+        return
+
+    response_parts = ["<b>📋 Активные вопросы в группе:</b>\n"]
+
+    for i, question in enumerate(all_questions, 1):
+        try:
+            duty = await main_repo.employee.get_users(user_id=question.duty_userid)
+            employee = await main_repo.employee.get_users(
+                user_id=question.employee_userid
+            )
+
+            # Определяем статус эмодзи
+            status_emoji = "🔸"
+            if question.status == "in_progress":
+                status_emoji = "🔹"
+            elif question.status == "open":
+                status_emoji = "🔸"
+
+            duty_name = format_fullname(duty, True, True)
+            employee_name = format_fullname(employee, True, True)
+            response_parts.append(
+                f"{status_emoji} <b>{i}.</b> <a href='t.me/c/{str(question.group_id)[4:]}/{question.topic_id}'>{question.token}</a>\n"
+                f"<b>Дежурный:</b> {duty_name}\n"
+                f"<b>Специалист:</b> {employee_name}\n\n"
+            )
+        except Exception as e:
+            logger.error(f"Ошибка при обработке вопроса {question.token}: {e}")
+            response_parts.append(
+                f"❌ <b>{i}.</b> <code>{question.token}</code> - ошибка загрузки данных\n"
+            )
+
+    response = "\n".join(response_parts)
+
+    # Если сообщение слишком длинное, разбиваем на части
+    if len(response) > 4000:
+        response = (
+            response[:4000]
+            + "\n\n<i>... список сокращен из-за ограничений Telegram</i>"
+        )
+
+    await message.reply(response, parse_mode="HTML", disable_web_page_preview=True)
 
 
 @main_topic_cmds_router.message(IsMainTopicMessageWithCommand("link"))

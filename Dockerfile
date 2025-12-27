@@ -1,25 +1,24 @@
-FROM python:3.13-slim
+FROM ghcr.io/astral-sh/uv:latest AS uv
+FROM python:3.13-slim AS runtime
 
-WORKDIR /usr/src/app/questioner-bot
+WORKDIR /app
 
-# Установка гита и других зависимостей
+# Системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Установка uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+# Python зависимости
+COPY --from=uv /uv /usr/local/bin/uv
+COPY pyproject.toml uv.lock* ./
+RUN uv sync --frozen --no-dev
+COPY . .
 
-# Копирование файлов проекта для лучшего кеширования
-COPY pyproject.toml uv.lock* /usr/src/app/questioner-bot/
+# Добавляем виртуальное окружение в PATH
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Установка зависимостей Python используя uv (создает .venv)
-RUN uv sync --frozen
+# Запрет Python записывать файлы .pyc и использовать буферизацию stdout
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Копирование кода проекта
-COPY . /usr/src/app/questioner-bot
-
-# Установка PATH для включения env
-ENV PATH="/usr/src/app/questioner-bot/.venv/bin:$PATH"
-
-CMD ["uv", "run", "python", "main.py"]
+CMD ["uv", "run", "python", "bot.py"]

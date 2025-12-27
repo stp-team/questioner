@@ -3,11 +3,14 @@ import logging
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from aiogram.types import CallbackQuery, Message
+from stp_database.models.Questions import Question
+from stp_database.models.STP import Employee
 from aiogram_dialog import DialogManager, StartMode
 from aiogram_dialog.api.exceptions import NoContextError
 from stp_database.models.Questions import Question
 from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.dialogs.states.user.main import QuestionSG, UserSG
 from tgbot.keyboards.user.main import (

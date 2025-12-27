@@ -5,6 +5,12 @@ import pytz
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, Message, ReplyKeyboardRemove
 from stp_database.models.Questions import Question
+from stp_database.models.STP import (
+    Employee,
+)
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.repo.STP import MainRequestsRepo
+from stp_database.models.Questions import Question
 from stp_database.models.STP import Employee
 from stp_database.repo.Questions import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
