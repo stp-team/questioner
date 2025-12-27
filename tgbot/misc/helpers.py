@@ -1,33 +1,15 @@
 import logging
 import re
 
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from stp_database.models.STP import Employee
 
 from tgbot.config import load_config
+from tgbot.misc.dicts import roles
 
 logger = logging.getLogger(__name__)
 
 config = load_config(".env")
-
-
-async def disable_previous_buttons(message: Message, state: FSMContext):
-    """Функция для отключения inline кнопок в сообщениях"""
-    state_data = await state.get_data()
-    messages_with_buttons = state_data.get("messages_with_buttons", [])
-
-    for msg_id in messages_with_buttons:
-        try:
-            await message.bot.edit_message_reply_markup(
-                chat_id=message.chat.id, message_id=msg_id, reply_markup=None
-            )
-        except Exception as e:
-            # Handle case where message might be deleted or not editable
-            print(f"Could not disable buttons for message {msg_id}: {e}")
-
-    # Clear the list after disabling buttons
-    await state.update_data(messages_with_buttons=[])
 
 
 async def check_premium_emoji(message: Message) -> tuple[bool, list[str]]:
@@ -59,6 +41,28 @@ async def get_target_forum(user: Employee):
             return config.forum.ntp_trainee_forum_id
         else:
             return config.forum.ntp_main_forum_id
+
+
+def get_role(role_id: int = None, role_name: str = None, return_id: bool = False):
+    """Получает информацию о роли.
+
+    Args:
+        role_id: Идентификатор роли
+        role_name: Название роли
+        return_id: Нужно ли возвращать идентификатор
+
+    Returns:
+        Название и эмодзи роли или идентификатор роли
+    """
+    if role_id is not None:
+        return role_id if return_id else roles.get(role_id)
+
+    if role_name is not None:
+        for r_id, data in roles.items():
+            if data["name"] == role_name:
+                return r_id if return_id else data
+
+    return None
 
 
 def get_gender_emoji(name: str) -> str:

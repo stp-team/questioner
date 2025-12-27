@@ -12,7 +12,7 @@ from aiogram.types import (
 )
 from stp_database.models.STP import Employee
 
-from tgbot.misc.dicts import group_admin_titles
+from tgbot.misc.helpers import get_role
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ class AdminRoleMiddleware(BaseMiddleware):
         chat_id: int,
     ):
         """Update admin custom title if it doesn't match user's role"""
-        expected_title = group_admin_titles[user.role]
+        expected_title = get_role(role_id=user.role)["name"]
 
         # Пропускаем апдейт титула для создателя чата
         if admin_status.status == ChatMemberStatus.CREATOR:
@@ -134,7 +134,7 @@ class AdminRoleMiddleware(BaseMiddleware):
             )
 
             # Set custom title
-            expected_title = group_admin_titles[user.role]
+            expected_title = get_role(role_id=user.role)["name"]
             if expected_title:
                 await self.bot.set_chat_administrator_custom_title(
                     chat_id=chat_id,

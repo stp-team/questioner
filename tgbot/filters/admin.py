@@ -2,7 +2,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from stp_database.models.STP import Employee
 
-from tgbot.misc.dicts import executed_codes
+from tgbot.misc.helpers import get_role
 
 ADMIN_ROLE = 10
 
@@ -12,4 +12,4 @@ class AdminFilter(BaseFilter):
         if user is None:
             return False
 
-        return user.role == executed_codes["root"]
+        return user.role == get_role(role_name="root", return_id=True)
