@@ -80,7 +80,7 @@ async def admin_extract_division(
     callback: CallbackQuery,
     callback_data: DivisionStatsExtract,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ) -> None:
     """Выгрузка статистики по выбранному месяцу и направлению"""
     month = callback_data.month
@@ -130,7 +130,7 @@ async def admin_extract_division(
     logger.info(
         f"Fetching employee data for {len(employee_ids)} employees and {len(duty_ids)} duty users"
     )
-    all_employees = await main_repo.employee.get_users()
+    all_employees = await stp_repo.employee.get_users()
     logger.info(f"Retrieved {len(all_employees)} total employees from database")
 
     # Создаем словари для быстрого поиска

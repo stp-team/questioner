@@ -44,18 +44,16 @@ class DatabaseMiddleware(BaseMiddleware):
                 async with self.main_session_pool() as main_session:
                     async with self.questioner_session_pool() as questioner_session:
                         # Create repositories for different databases
-                        main_repo = MainRequestsRepo(main_session)  # For STPMain DB
-                        questioner_repo = QuestionsRequestsRepo(
-                            questioner_session
-                        )  # For QuestionerBot DB
+                        stp_repo = MainRequestsRepo(main_session)
+                        questioner_repo = QuestionsRequestsRepo(questioner_session)
 
                         # Get user from database
-                        user = await main_repo.employee.get_users(
+                        user = await stp_repo.employee.get_users(
                             user_id=event.from_user.id
                         )
 
                         # Add repositories and user to data for other middlewares
-                        data["main_repo"] = main_repo
+                        data["stp_repo"] = stp_repo
                         data["main_session"] = main_session
                         data["questioner_session"] = questioner_session
                         data["questions_repo"] = questioner_repo

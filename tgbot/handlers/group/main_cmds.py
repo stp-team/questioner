@@ -27,7 +27,7 @@ async def question_info(
     command: CommandObject,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     """Получение информации о вопросе."""
     if user.role not in [2, 10]:
@@ -49,8 +49,8 @@ async def question_info(
     )
 
     if question:
-        duty = await main_repo.employee.get_users(user_id=question.duty_userid)
-        employee = await main_repo.employee.get_users(user_id=question.employee_userid)
+        duty = await stp_repo.employee.get_users(user_id=question.duty_userid)
+        employee = await stp_repo.employee.get_users(user_id=question.employee_userid)
 
         response = f"""<b>Информация о вопросе</b>
 

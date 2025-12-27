@@ -12,7 +12,7 @@ from tgbot.dialogs.states.user.main import QuestionSG
 
 question_text = Window(
     Const("""🤔 <b>Суть вопроса</b>
-new
+
 Отправь вопрос и вложения одним сообщением"""),
     MessageInput(on_message_input),
     state=QuestionSG.question_text,
@@ -21,7 +21,7 @@ new
 
 question_link = Window(
     Const("""🗃️ <b>Регламент</b>
-new
+
 Прикрепи ссылку на регламент из клевера, по которому у тебя вопрос"""),
     TextInput(
         id="link_input",
@@ -35,13 +35,13 @@ confirmation = Window(
     Multi(
         Format("""✅ <b>Подтверждение</b>
 
-📝 <b>Ваш вопрос:</b>
-{user_text}"""),
-        Format("\n📎 Прикреплены файлы", when=F["has_attachments"]),
+📝 <b>Твой вопрос:</b>
+<blockquote>{user_text}</blockquote>"""),
+        Format("\n📎 Есть прикрепленные файлы", when=F["has_attachments"]),
         Format("""
 
 🔗 <b>Ссылка на регламент:</b>
-{regulation_link}
+<code>{regulation_link}</code>
 
 Все верно?"""),
         sep="",

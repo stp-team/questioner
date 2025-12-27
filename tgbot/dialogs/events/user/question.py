@@ -1,16 +1,29 @@
 import datetime
 import logging
+from typing import Any
 
 import pytz
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode
 from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
 
+from tgbot.dialogs.states.user.main import QuestionSG
 from tgbot.keyboards.user.main import activity_status_toggle_kb, cancel_question_kb
-from tgbot.misc.helpers import extract_clever_link, get_target_forum, short_name
+from tgbot.misc.helpers import (
+    extract_clever_link,
+    format_fullname,
+    get_target_forum,
+    short_name,
+)
 from tgbot.services.scheduler import start_attention_reminder
+
+
+async def start_question_dialog(
+    _event: CallbackQuery, _widget: Any, dialog_manager: DialogManager
+):
+    await dialog_manager.start(QuestionSG.question_text)
 
 
 async def on_message_input(
@@ -32,14 +45,14 @@ async def on_message_input(
 
 
 async def check_link(
-    message: Message, _widget, dialog_manager: DialogManager, text: str, **_kwargs
+    _message: Message, _widget, dialog_manager: DialogManager, text: str, **_kwargs
 ):
     """Валидация ссылки на регламент."""
     if not text.startswith("http"):
         text = "https://" + text
 
     if "clever.ertelecom.ru" not in text:
-        return "❌ Ссылка должна содержать 'clever.ertelecom.ru'"
+        return "Ссылка должна вести на <a href='clever.ertelecom.ru'>Клевер</a>"
 
     # Проверяем на запрещенные ссылки
     extracted_link = extract_clever_link(text)
@@ -73,8 +86,12 @@ async def on_confirm(
     """Обработка подтверждения отправки вопроса."""
     # Получаем данные из контекста
     user: Employee = dialog_manager.middleware_data["user"]
-    questions_repo: QuestionsRequestsRepo = dialog_manager.middleware_data["questions_repo"]
-    main_repo: MainRequestsRepo = dialog_manager.middleware_data["main_repo"]
+    questions_repo: QuestionsRequestsRepo = dialog_manager.middleware_data[
+        "questions_repo"
+    ]
+    stp_repo: MainRequestsRepo = dialog_manager.middleware_data["stp_repo"]
+
+    head = await stp_repo.employee.get_users(fullname=user.head)
 
     # Проверяем активные вопросы
     active_questions = await questions_repo.questions.get_active_questions()
@@ -115,7 +132,7 @@ async def on_confirm(
             chat_id=target_forum_id,
             name=f"{user.division} | {short_name(user.fullname)}"
             if group_settings.get_setting("show_division")
-            else short_name(user.fullname),
+            else format_fullname(user, True, True),
             icon_custom_emoji_id=group_settings.get_setting("emoji_open"),
         )
 
@@ -138,23 +155,11 @@ async def on_confirm(
             reply_markup=cancel_question_kb(token=new_question.token),
         )
 
-        # Формируем информацию о пользователе
-        if user.username:
-            user_fullname = f"<a href='t.me/{user.username}'>{short_name(user.fullname)}</a>"
-        else:
-            user_fullname = short_name(user.fullname)
-
-        head = await main_repo.employee.get_users(fullname=user.head)
-        if head and head.username:
-            head_fullname = f"<a href='t.me/{head.username}'>{short_name(head.fullname)}</a>"
-        else:
-            head_fullname = short_name(user.head)
-
         # Отправляем информационное сообщение в тему
-        topic_text = f"""Вопрос задает <b>{user_fullname}</b>
+        topic_text = f"""Вопрос задает <b>{format_fullname(user, True, True)}</b>
 
 <blockquote expandable><b>👔 Должность:</b> {user.position}
-<b>👑 Руководитель:</b> {head_fullname}
+<b>👑 Руководитель:</b> {format_fullname(head, True, True)}
 
 <b>❓ Вопросов:</b> за день {employee_topics_today} / за месяц {employee_topics_month}</blockquote>"""
 
@@ -193,8 +198,10 @@ async def on_confirm(
             f"[Dialog] {callback.from_user.username} ({callback.from_user.id}): Создан новый вопрос {new_question.token}"
         )
 
-        await callback.answer("Вопрос успешно создан!")
-        await dialog_manager.done()
+        await callback.answer(
+            "Вопрос передан на рассмотрение, в скором времени тебе ответят"
+        )
+        await dialog_manager.done(show_mode=ShowMode.NO_UPDATE)
 
     except Exception as e:
         logging.error(f"Ошибка при создании вопроса: {e}")

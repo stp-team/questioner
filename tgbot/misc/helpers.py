@@ -50,17 +50,6 @@ def extract_clever_link(message_text):
     return None
 
 
-def short_name(full_name: str) -> str:
-    """Extract short name from full name."""
-    # Remove date info in parentheses if present
-    clean_name = full_name.split("(")[0].strip()
-    parts = clean_name.split()
-
-    if len(parts) >= 2:
-        return " ".join(parts[:2])
-    return clean_name
-
-
 async def get_target_forum(user: Employee):
     if user.division == "НЦК":
         if user.is_trainee:
@@ -72,3 +61,94 @@ async def get_target_forum(user: Employee):
             return config.forum.ntp_trainee_forum_id
         else:
             return config.forum.ntp_main_forum_id
+
+
+def get_gender_emoji(name: str) -> str:
+    """Определяет пол по имени.
+
+    Args:
+        name: Полные ФИО
+
+    Returns:
+        Эмодзи гендера
+    """
+    parts = name.split()
+    if len(parts) >= 3:
+        patronymic = parts[2]
+        if patronymic.endswith("на"):
+            return "👩‍💼"
+        elif patronymic.endswith(("ич", "ович", "евич")):
+            return "👨‍💼"
+    return "👨‍💼"
+
+
+def short_name(full_name: str) -> str:
+    """Достает фамилию и имя из ФИО.
+
+    Args:
+        full_name: Полные ФИО
+
+    Returns:
+        Фамилия и имя
+    """
+    clean_name = full_name.split("(")[0].strip()
+    parts = clean_name.split()
+
+    if len(parts) >= 2:
+        return " ".join(parts[:2])
+    return clean_name
+
+
+def format_fullname(
+    user: Employee = None,
+    short: bool = True,
+    gender_emoji: bool = False,
+    fullname: str = None,
+    username: str = None,
+    user_id: int = None,
+) -> str:
+    """Форматирует ФИО пользователя.
+
+    Args:
+        user: Экземпляр пользователя с моделью Employee
+        short: Нужно ли сократить до ФИ
+        gender_emoji: Нужно ли добавлять эмодзи гендеры к ФИО
+        fullname: ФИО пользователя (используется когда user=None)
+        username: Username пользователя (используется когда user=None)
+        user_id: ID пользователя (используется когда user=None)
+
+    Returns:
+        Форматированная строка с указанными параметрами
+    """
+    # Определяем источник данных
+    if user is not None:
+        # Используем данные из объекта Employee
+        user_fullname = user.fullname
+        user_username = user.username
+        user_user_id = user.user_id
+    else:
+        # Используем переданные параметры
+        user_fullname = fullname or ""
+        user_username = username
+        user_user_id = user_id
+
+    # Форматируем ФИО
+    if short and user_fullname:
+        formatted_fullname = short_name(user_fullname)
+    else:
+        formatted_fullname = user_fullname
+
+    # Добавляем ссылку, если есть username или user_id
+    if user_username is not None:
+        formatted_fullname = f"<a href='t.me/{user_username}'>{formatted_fullname}</a>"
+    elif user_username is None and user_user_id is not None:
+        formatted_fullname = (
+            f"<a href='tg://user?id={user_user_id}'>{formatted_fullname}</a>"
+        )
+
+    # Добавляем эмодзи гендера, если требуется
+    if gender_emoji and user_fullname:
+        emoji = get_gender_emoji(user_fullname)
+        formatted_fullname = f"{emoji} {formatted_fullname}"
+
+    return formatted_fullname

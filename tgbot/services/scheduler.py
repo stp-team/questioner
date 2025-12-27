@@ -456,9 +456,9 @@ async def send_attention_reminder_job(question_token: str):
         async with questioner_session_pool() as questioner_session:
             async with main_session_pool() as main_session:
                 questions_repo = QuestionsRequestsRepo(session=questioner_session)
-                main_repo = MainRequestsRepo(session=main_session)
+                stp_repo = MainRequestsRepo(session=main_session)
                 await send_attention_reminder(
-                    bot, question_token, questions_repo, main_repo
+                    bot, question_token, questions_repo, stp_repo
                 )
 
     except Exception as e:
@@ -469,7 +469,7 @@ async def send_attention_reminder(
     bot: Bot,
     question_token: str,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     """Отправляет напоминание о вопросе, требующем внимания, в общий чат группы."""
     try:
@@ -484,7 +484,7 @@ async def send_attention_reminder(
             stop_attention_reminder(question_token)
             return
 
-        employee: Employee = await main_repo.employee.get_users(
+        employee: Employee = await stp_repo.employee.get_users(
             user_id=question.employee_userid
         )
 

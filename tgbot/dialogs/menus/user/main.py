@@ -7,12 +7,12 @@ from aiogram_dialog import Dialog, DialogManager
 from aiogram_dialog.widgets.kbd import (
     Button,
     Row,
-    SwitchTo,
 )
 from aiogram_dialog.widgets.text import Const, Format
 from aiogram_dialog.window import Window
 
-from tgbot.dialogs.events.user.main import start_question_dialog
+from tgbot.dialogs.events.user.q_return import start_q_return_dialog
+from tgbot.dialogs.events.user.question import start_question_dialog
 from tgbot.dialogs.getters.user.main import menu_getter
 from tgbot.dialogs.states.user.main import UserSG
 
@@ -41,7 +41,11 @@ menu_window = Window(
         Button(
             Const("🤔 Задать вопрос"), id="question_new", on_click=start_question_dialog
         ),
-        SwitchTo(Const("🔄 Возврат вопроса"), id="question_return", state=UserSG.menu),
+        Button(
+            Const("🔄 Возврат вопроса"),
+            id="question_return",
+            on_click=start_q_return_dialog,
+        ),
         when="is_employee",
     ),
     getter=menu_getter,

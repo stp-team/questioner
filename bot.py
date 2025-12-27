@@ -92,7 +92,8 @@ async def main():
     storage = get_storage(bot_config)
 
     bot = Bot(
-        token=bot_config.tg_bot.token, default=DefaultBotProperties(parse_mode="HTML")
+        token=bot_config.tg_bot.token,
+        default=DefaultBotProperties(parse_mode="HTML", link_preview_is_disabled=True),
     )
 
     # Определение команд для приватных чатов

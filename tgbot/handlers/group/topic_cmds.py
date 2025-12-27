@@ -30,7 +30,7 @@ async def end_q_cmd(
     message: Message,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     question: Question = await questions_repo.questions.get_question(
         group_id=message.chat.id, topic_id=message.message_thread_id
@@ -108,7 +108,7 @@ async def end_q_cmd(
                 message_thread_id=question.topic_id,
             )
 
-            employee: Employee = await main_repo.employee.get_users(
+            employee: Employee = await stp_repo.employee.get_users(
                 user_id=question.employee_userid
             )
 
@@ -167,7 +167,7 @@ async def release_q_cmd(
     message: Message,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     question: Question = await questions_repo.questions.get_question(
         group_id=message.chat.id, topic_id=message.message_thread_id
@@ -187,7 +187,7 @@ async def release_q_cmd(
                 status="open",
             )
 
-            employee: Employee = await main_repo.employee.get_users(
+            employee: Employee = await stp_repo.employee.get_users(
                 user_id=question.employee_userid
             )
 

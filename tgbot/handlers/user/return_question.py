@@ -39,7 +39,7 @@ async def return_finished_q(
     callback_data: QuestionQualitySpecialist,
     state: FSMContext,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
     user: Employee,
 ):
     """Возврат вопроса специалистом по клику на клавиатуру после закрытия вопроса."""
@@ -63,9 +63,7 @@ async def return_finished_q(
         and user.user_id not in [d.employee_userid for d in active_questions]
         and question.token in [d.token for d in available_to_return_questions]
     ):
-        duty: Employee = await main_repo.employee.get_users(
-            user_id=question.duty_userid
-        )
+        duty: Employee = await stp_repo.employee.get_users(user_id=question.duty_userid)
         await questions_repo.questions.update_question(
             token=question.token,
             status="open",
@@ -180,7 +178,7 @@ async def q_info(
     state: FSMContext,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     """Меню описания выбранного специалистом вопроса для возврата в работу"""
     question: Question = await questions_repo.questions.get_question(
@@ -192,9 +190,7 @@ async def q_info(
         return
 
     if question.duty_userid:
-        duty: Employee = await main_repo.employee.get_users(
-            user_id=question.duty_userid
-        )
+        duty: Employee = await stp_repo.employee.get_users(user_id=question.duty_userid)
     else:
         duty = None
 
@@ -243,7 +239,7 @@ async def return_q_confirm(
     state: FSMContext,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     """Возврат выбранного специалистом вопроса в работу"""
     await state.clear()
@@ -270,7 +266,7 @@ async def return_q_confirm(
         # Get duty user only if topic_duty_fullname exists
         duty = None
         if question.duty_userid:
-            duty: Employee = await main_repo.employee.get_users(
+            duty: Employee = await stp_repo.employee.get_users(
                 user_id=question.duty_userid
             )
 
