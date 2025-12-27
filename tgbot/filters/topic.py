@@ -4,11 +4,9 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 
 from tgbot.config import load_config
-from tgbot.services.logger import setup_logging
 
 config = load_config(".env")
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

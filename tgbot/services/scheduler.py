@@ -15,8 +15,9 @@ from stp_database.repo.STP import MainRequestsRepo
 
 from tgbot.config import load_config
 from tgbot.keyboards.group.main import closed_question_duty_kb
-from tgbot.keyboards.user.main import closed_question_specialist_kb
-from tgbot.services.logger import setup_logging
+from tgbot.keyboards.user.main import (
+    question_finish_employee_kb,
+)
 
 config = load_config(".env")
 
@@ -71,7 +72,6 @@ else:
 # Global registry to store picklable dependencies
 _scheduler_registry = {}
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -327,7 +327,7 @@ async def auto_close_question(
             await bot.send_message(
                 chat_id=question.employee_userid,
                 text=f"Твой вопрос был закрыт из-за отсутствия активности в течение {group_settings.get_setting('activity_close_minutes')} минут",
-                reply_markup=closed_question_specialist_kb(token=question_token),
+                reply_markup=question_finish_employee_kb(question=question),
             )
 
     except Exception as e:
@@ -461,9 +461,9 @@ async def send_attention_reminder_job(question_token: str):
         async with questioner_session_pool() as questioner_session:
             async with main_session_pool() as main_session:
                 questions_repo = QuestionsRequestsRepo(session=questioner_session)
-                main_repo = MainRequestsRepo(session=main_session)
+                stp_repo = MainRequestsRepo(session=main_session)
                 await send_attention_reminder(
-                    bot, question_token, questions_repo, main_repo
+                    bot, question_token, questions_repo, stp_repo
                 )
 
     except Exception as e:
@@ -474,7 +474,7 @@ async def send_attention_reminder(
     bot: Bot,
     question_token: str,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     """Отправляет напоминание о вопросе, требующем внимания, в общий чат группы."""
     try:
@@ -489,7 +489,7 @@ async def send_attention_reminder(
             stop_attention_reminder(question_token)
             return
 
-        employee: Employee = await main_repo.employee.get_users(
+        employee: Employee = await stp_repo.employee.get_users(
             user_id=question.employee_userid
         )
 

@@ -6,41 +6,32 @@ from sqlalchemy import Sequence
 from stp_database.models.Questions import Question
 from stp_database.repo.Questions import QuestionsRequestsRepo
 
-from tgbot.services.logger import setup_logging
-
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
 class ActiveQuestion(BaseFilter):
     async def __call__(
-        self, obj: Message, questions_repo: QuestionsRequestsRepo, **kwargs
-    ) -> dict[str, str] | bool:
+        self, obj: Message, questions_repo: QuestionsRequestsRepo, **_kwargs
+    ) -> bool | dict[str, Question]:
         """Filter to check if user has an active question
         ONLY works in private chats, not in groups
         :param obj: Message object being filtered
         :param questions_repo: Database repository for questions
-        :param kwargs: Additional arguments
+        :param _kwargs: Additional arguments
         :return: Status whether user has an active question
         """
         if obj.chat.type != "private":
             return False
 
-        active_questions: Sequence[
-            Question
-        ] = await questions_repo.questions.get_active_questions()
+        active_questions = await questions_repo.questions.get_active_questions()
 
         for question in active_questions:
             if question.employee_userid == obj.from_user.id:
-                active_question_token = question.token
+                return {
+                    "question": question,
+                }
 
-                logger.info(
-                    f"[Активные вопросы] Найден активный вопрос с токеном {active_question_token} у специалиста {obj.from_user.id}"
-                )
-
-                return {"active_question_token": active_question_token}
-
-        logger.info(
+        logger.debug(
             f"[Активные вопросы] Не найдено активных вопросов у специалиста {obj.from_user.id}"
         )
         return False
@@ -51,8 +42,8 @@ class ActiveQuestionWithCommand(BaseFilter):
         self.command = command
 
     async def __call__(
-        self, obj: Message, questions_repo: QuestionsRequestsRepo, **kwargs
-    ) -> None | bool | dict[str, str]:
+        self, obj: Message, questions_repo: QuestionsRequestsRepo, **_kwargs
+    ) -> bool | dict[str, Question] | None:
         if self.command:
             if obj.chat.type != "private":
                 return False
@@ -66,13 +57,7 @@ class ActiveQuestionWithCommand(BaseFilter):
 
             for question in current_questions:
                 if question.employee_userid == obj.from_user.id:
-                    active_question_token = question.token
-
-                    logger.info(
-                        f"[Активные вопросы] Найден активный вопрос с токеном {active_question_token} у специалиста {obj.from_user.id}"
-                    )
-
-                    return {"active_question_token": active_question_token}
+                    return {"question": question}
 
             return False
         logger.info(

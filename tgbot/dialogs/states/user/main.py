@@ -1,0 +1,24 @@
+from aiogram.fsm.state import State, StatesGroup
+
+
+class UserSG(StatesGroup):
+    """Группа состояний специалистов и дежурных."""
+
+    # Меню
+    menu = State()
+
+
+class QuestionSG(StatesGroup):
+    question_text = State()
+    question_link = State()
+    confirmation = State()
+
+
+class ReturnSG(StatesGroup):
+    menu = State()
+    confirmation = State()
+
+
+class HistorySG(StatesGroup):
+    menu = State()
+    details = State()

@@ -11,11 +11,13 @@ from aiogram.types import (
     BotCommandScopeAllPrivateChats,
 )
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from aiogram_dialog import setup_dialogs
 from aiohttp import web
 from aiohttp.web import Response
 from stp_database import create_engine, create_session_pool
 
 from tgbot.config import Config, load_config
+from tgbot.dialogs.menus import dialogs_list
 from tgbot.handlers import routers_list
 from tgbot.middlewares.AdminRoleMiddleware import AdminRoleMiddleware
 from tgbot.middlewares.ConfigMiddleware import ConfigMiddleware
@@ -117,10 +119,6 @@ def register_middlewares(
     main_session_pool=None,
     questioner_session_pool=None,
 ):
-    """Alternative setup with more selective middleware application.
-    Use this if you want different middleware chains for different event types.
-    """
-    # Always needed
     config_middleware = ConfigMiddleware(config)
     database_middleware = DatabaseMiddleware(
         config=config,
@@ -132,32 +130,20 @@ def register_middlewares(
     # User management middlewares
     access_middleware = UserAccessMiddleware(bot=bot)
     role_middleware = AdminRoleMiddleware(bot=bot)
+    message_pairing_middleware = MessagePairingMiddleware()
 
-    # Apply to messages (most comprehensive chain)
+    # Apply to messages
     for middleware in [
         config_middleware,
         database_middleware,
         access_middleware,
         role_middleware,
+        message_pairing_middleware,
     ]:
         dp.message.outer_middleware(middleware)
-
-    # Apply to callback queries (skip role management if not needed)
-    for middleware in [config_middleware, database_middleware, access_middleware]:
         dp.callback_query.outer_middleware(middleware)
-
-    # Apply to edited messages (includes message pairing)
-    for middleware in [
-        config_middleware,
-        database_middleware,
-        access_middleware,
-        role_middleware,
-    ]:
         dp.edited_message.outer_middleware(middleware)
-    dp.edited_message.outer_middleware(MessagePairingMiddleware())
-
-    # Apply to chat member updates (minimal chain)
-    for middleware in [config_middleware, database_middleware]:
+        dp.edited_message.outer_middleware()
         dp.chat_member.outer_middleware(middleware)
 
 
@@ -186,7 +172,8 @@ async def main():
     storage = get_storage(bot_config)
 
     bot = Bot(
-        token=bot_config.tg_bot.token, default=DefaultBotProperties(parse_mode="HTML")
+        token=bot_config.tg_bot.token,
+        default=DefaultBotProperties(parse_mode="HTML", link_preview_is_disabled=True),
     )
 
     # Определение команд для приватных чатов
@@ -207,8 +194,6 @@ async def main():
         ],
         scope=BotCommandScopeAllGroupChats(),
     )
-
-    # await bot.set_my_name(name="Вопросник")
 
     dp = Dispatcher(storage=storage)
 
@@ -233,6 +218,9 @@ async def main():
     dp["questioner_db"] = questioner_db
 
     dp.include_routers(*routers_list)
+    dp.include_routers(*dialogs_list)
+    # dp.include_routers(*common_dialogs_list)
+    setup_dialogs(dp)
 
     register_middlewares(dp, bot_config, bot, main_db, questioner_db)
 

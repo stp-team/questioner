@@ -6,27 +6,26 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "stp-database @ git+https://git@github.com/ERTG-BOTS/stp-database.git",
-    "aiogram>=3.21.0",
+    "aiogram>=3.22.0",
     "aiomysql>=0.2.0",
-    "aioodbc>=0.5.0",
-    "alembic>=1.14.0",
     "apscheduler>=3.11.0",
     "betterlogging>=1.0.0",
-    "environs>=14.2.0",
-    "google-api-python-client>=2.177.0",
+    "environs>=14.3.0",
     "gspread>=6.2.1",
     "openpyxl>=3.1.5",
-    "pandas>=2.3.1",
+    "pandas>=2.3.3",
     "pytz>=2025.2",
-    "redis>=6.2.0",
-    "sqlalchemy>=2.0.41",
+    "redis>=6.4.0",
+    "sqlalchemy>=2.0.44",
+    "aiogram-dialog>=2.4.0",
+    "validators>=0.35.0",
 ]
 
 [tool.ruff]
 preview = true
 
 [tool.ruff.lint]
-select = ["E", "F", "I"]
+select = ["ARG", "E", "F", "I"]
 ignore = ["D417", "E501", "D"]
 
 [tool.ruff.lint.pydocstyle]

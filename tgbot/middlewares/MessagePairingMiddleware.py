@@ -6,9 +6,6 @@ from aiogram.types import Message
 from stp_database.models.Questions import MessagesPair
 from stp_database.repo.Questions import QuestionsRequestsRepo
 
-from tgbot.services.logger import setup_logging
-
-setup_logging()
 logger = logging.getLogger(__name__)
 
 

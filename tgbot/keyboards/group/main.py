@@ -1,5 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from stp_database.models.Questions import Question
 
 
 class QuestionQualityDuty(CallbackData, prefix="q_quality_duty"):
@@ -36,30 +37,29 @@ def reopened_question_kb() -> InlineKeyboardMarkup:
     return keyboard
 
 
-def question_quality_duty_kb(
-    token: str,
-    allow_return: bool = True,
-    show_quality: bool = None,
+def question_finish_duty_kb(
+    question: Question,
 ) -> InlineKeyboardMarkup:
     """Клавиатура оценки помощи с вопросом со стороны дежурного.
 
-    :param str token: Уникальный токен вопроса
-    :param bool allow_return: Разрешен ли специалисту возврат текущего вопроса
-    :param bool show_quality: Отображать кнопки оценки вопроса
     :return: Объект встроенной клавиатуры для возврата главного меню
     """
     buttons = []
 
-    if show_quality is not None:
+    if question.quality_duty is None:
         buttons.append(
             [
                 InlineKeyboardButton(
                     text="👎 Да",
-                    callback_data=QuestionQualityDuty(answer=False, token=token).pack(),
+                    callback_data=QuestionQualityDuty(
+                        answer=False, token=question.token
+                    ).pack(),
                 ),
                 InlineKeyboardButton(
                     text="👍 Нет",
-                    callback_data=QuestionQualityDuty(answer=True, token=token).pack(),
+                    callback_data=QuestionQualityDuty(
+                        answer=True, token=question.token
+                    ).pack(),
                 ),
             ],
         )
@@ -69,18 +69,18 @@ def question_quality_duty_kb(
             InlineKeyboardButton(
                 text="🔄 Вернуть вопрос",
                 callback_data=QuestionQualityDuty(
-                    return_question=True, token=token
+                    return_question=True, token=question.token
                 ).pack(),
             )
         ],
     )
 
-    if allow_return:
+    if question.allow_return:
         buttons.append([
             InlineKeyboardButton(
                 text="🟢 Возврат разрешен",
                 callback_data=QuestionAllowReturn(
-                    token=token, allow_return=False
+                    token=question.token, allow_return=False
                 ).pack(),
             )
         ])
@@ -89,7 +89,7 @@ def question_quality_duty_kb(
             InlineKeyboardButton(
                 text="🟠 Возврат отключен",
                 callback_data=QuestionAllowReturn(
-                    token=token, allow_return=True
+                    token=question.token, allow_return=True
                 ).pack(),
             )
         ])

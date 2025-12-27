@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from typing import Sequence
 
 import pytz
 from aiogram import F, Router
@@ -25,7 +24,7 @@ from tgbot.keyboards.group.main import (
     QuestionAllowReturn,
     QuestionQualityDuty,
     closed_question_duty_kb,
-    question_quality_duty_kb,
+    question_finish_duty_kb,
 )
 from tgbot.keyboards.user.main import (
     ActivityStatusToggle,
@@ -33,8 +32,7 @@ from tgbot.keyboards.user.main import (
     finish_question_kb,
 )
 from tgbot.middlewares.MessagePairingMiddleware import store_message_connection
-from tgbot.misc.helpers import check_premium_emoji, short_name
-from tgbot.services.logger import setup_logging
+from tgbot.misc.helpers import check_premium_emoji, format_fullname, short_name
 from tgbot.services.scheduler import (
     restart_inactivity_timer,
     run_delete_timer,
@@ -44,7 +42,6 @@ from tgbot.services.scheduler import (
 
 topic_router = Router()
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -53,12 +50,12 @@ async def handle_q_message(
     message: Message,
     user: Employee,
     questions_repo: QuestionsRequestsRepo,
-    main_repo: MainRequestsRepo,
+    stp_repo: MainRequestsRepo,
 ):
     question: Question = await questions_repo.questions.get_question(
         group_id=message.chat.id, topic_id=message.message_thread_id
     )
-    employee: Employee = await main_repo.employee.get_users(
+    employee: Employee = await stp_repo.employee.get_users(
         user_id=question.employee_userid
     )
 
@@ -74,7 +71,7 @@ async def handle_q_message(
             message=message,
             user=user,
             questions_repo=questions_repo,
-            main_repo=main_repo,
+            stp_repo=stp_repo,
             question=question,
         )
         return
@@ -114,18 +111,11 @@ async def handle_q_message(
                 icon_custom_emoji_id=group_settings.get_setting("emoji_in_progress"),
             )
 
-            if user.username:
-                user_fullname = (
-                    f"<a href='t.me/{user.username}'>{short_name(user.fullname)}</a>"
-                )
-            else:
-                user_fullname = user.fullname
-
             try:
                 await message.answer(
                     f"""<b>👮‍♂️ Вопрос в работе</b>
 
-На вопрос отвечает <b>{user_fullname}</b>
+На вопрос отвечает <b>{format_fullname(user, True, True)}</b>
 
 <blockquote expandable><b>⚒️ Решено:</b> за день {duty_topics_today} / за месяц {duty_topics_month}</blockquote>""",
                     disable_web_page_preview=True,
@@ -134,7 +124,7 @@ async def handle_q_message(
                 await message.answer(
                     f"""<b>👮‍♂️ Вопрос в работе</b>
 
-На вопрос отвечает <b>{user_fullname}</b>
+На вопрос отвечает <b>{format_fullname(user, True, True)}</b>
 
 <blockquote expandable><b>⚒️ Решено:</b> за день {duty_topics_today} / за месяц {duty_topics_month}</blockquote>""",
                     disable_web_page_preview=True,
@@ -144,7 +134,7 @@ async def handle_q_message(
                 chat_id=employee.user_id,
                 text=f"""<b>👮‍♂️ Вопрос в работе</b>
 
-Дежурный <b>{user_fullname}</b> взял вопрос в работу""",
+Дежурный <b>{format_fullname(user, True, True)}</b> взял вопрос в работу""",
                 reply_markup=finish_question_kb(),
             )
 
@@ -424,9 +414,9 @@ async def return_q_duty(
         group_id=question.group_id,
     )
 
-    available_to_return_questions: Sequence[
-        Question
-    ] = await questions_repo.questions.get_available_to_return_questions()
+    available_to_return_questions = (
+        await questions_repo.questions.get_available_to_return_questions()
+    )
     active_questions = await questions_repo.questions.get_active_questions()
 
     if (
@@ -460,8 +450,10 @@ async def return_q_duty(
             chat_id=question.employee_userid,
             text=f"""<b>🔓 Вопрос переоткрыт</b>
 
-Дежурный <b>{short_name(user.fullname)}</b> переоткрыл вопрос:
-<blockquote expandable><i>{question.question_text}</i></blockquote>""",
+Дежурный <b>{format_fullname(user, True, True)}</b> переоткрыл вопрос:
+
+❓ <b>Изначальный вопрос:</b>
+<blockquote expandable>{question.question_text}</blockquote>""",
             reply_markup=finish_question_kb(),
         )
         logger.info(
@@ -514,17 +506,15 @@ async def change_q_return_status(
         await callback.answer("⛔ Возврат текущего вопроса был запрещен")
 
     await callback.message.edit_reply_markup(
-        reply_markup=question_quality_duty_kb(
-            token=callback_data.token,
-            show_quality=True if question.quality_duty is None else None,
-            allow_return=callback_data.allow_return,
+        reply_markup=question_finish_duty_kb(
+            question=question,
         )
     )
     await callback.answer()
 
 
 @topic_router.callback_query(IsTopicMessage() and QuestionQualityDuty.filter())
-async def quality_q_duty(
+async def question_quality_duty(
     callback: CallbackQuery,
     callback_data: QuestionQualityDuty,
     user: Employee,

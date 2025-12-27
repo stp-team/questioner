@@ -15,173 +15,125 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 from stp_database.models.Questions import MessagesPair, Question
+from stp_database.models.STP import Employee
+from stp_database.repo.Questions import QuestionsRequestsRepo
+from stp_database.models.Questions import MessagesPair, Question
 from stp_database.models.STP import (
     Employee,
 )
 from stp_database.repo.Questions import QuestionsRequestsRepo
 
 from tgbot.filters.active_question import ActiveQuestion, ActiveQuestionWithCommand
-from tgbot.keyboards.group.main import question_quality_duty_kb
+from tgbot.keyboards.group.main import question_finish_duty_kb
 from tgbot.keyboards.user.main import (
     QuestionQualitySpecialist,
-    closed_question_specialist_kb,
-    question_quality_specialist_kb,
+    question_finish_employee_kb,
 )
 from tgbot.middlewares.MessagePairingMiddleware import store_message_connection
-from tgbot.misc.helpers import check_premium_emoji, short_name
-from tgbot.services.logger import setup_logging
+from tgbot.misc.helpers import check_premium_emoji, format_fullname, short_name
 from tgbot.services.scheduler import (
     restart_inactivity_timer,
     run_delete_timer,
     stop_inactivity_timer,
 )
 
-user_q_router = Router()
-user_q_router.message.filter(F.chat.type == "private")
-user_q_router.callback_query.filter(F.message.chat.type == "private")
+user_q = Router()
+user_q.message.filter(F.chat.type == "private")
+user_q.callback_query.filter(F.message.chat.type == "private")
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
-@user_q_router.message(ActiveQuestionWithCommand("end"))
+@user_q.message(ActiveQuestionWithCommand("end"))
 async def active_question_end(
     message: Message,
     questions_repo: QuestionsRequestsRepo,
     user: Employee,
-    active_question_token: str,
+    question: Question,
 ):
-    question: Question = await questions_repo.questions.get_question(
-        token=active_question_token
-    )
-
-    if question is not None:
-        group_settings = await questions_repo.settings.get_settings_by_group_id(
-            group_id=question.group_id,
-        )
-
-        if question.status != "closed":
-            # Останавливаем таймер бездействия
-            stop_inactivity_timer(question.token)
-
-            await questions_repo.questions.update_question(
-                token=question.token,
-                end_time=datetime.datetime.now(tz=pytz.timezone("Asia/Yekaterinburg")),
-                status="closed",
-            )
-
-            if question.quality_duty is not None:
-                if question.quality_duty:
-                    await message.bot.send_message(
-                        chat_id=question.group_id,
-                        message_thread_id=question.topic_id,
-                        text=f"""<b>🔒 Вопрос закрыт</b>
-    
-Специалист <b>{short_name(user.fullname)}</b> закрыл вопрос
-👍 Специалист <b>не мог решить вопрос самостоятельно</b>""",
-                        reply_markup=question_quality_duty_kb(
-                            token=question.token,
-                            show_quality=None,
-                            allow_return=question.allow_return,
-                        ),
-                    )
-                else:
-                    await message.bot.send_message(
-                        chat_id=question.group_id,
-                        message_thread_id=question.topic_id,
-                        text=f"""<b>🔒 Вопрос закрыт</b>
-
-Специалист <b>{short_name(user.fullname)}</b> закрыл вопрос
-👎 Специалист <b>мог решить вопрос самостоятельно</b>""",
-                        reply_markup=question_quality_duty_kb(
-                            token=question.token,
-                            show_quality=None,
-                            allow_return=question.allow_return,
-                        ),
-                    )
-            else:
-                await message.bot.send_message(
-                    chat_id=question.group_id,
-                    message_thread_id=question.topic_id,
-                    text=f"""<b>🔒 Вопрос закрыт</b>
-
-Специалист <b>{short_name(user.fullname)}</b> закрыл вопрос
-Оцени, мог ли специалист решить его самостоятельно""",
-                    reply_markup=question_quality_duty_kb(
-                        token=question.token,
-                        show_quality=True,
-                        allow_return=question.allow_return,
-                    ),
-                )
-
-            await message.bot.edit_forum_topic(
-                chat_id=question.group_id,
-                message_thread_id=question.topic_id,
-                name=question.token,
-                icon_custom_emoji_id=group_settings.get_setting("emoji_closed"),
-            )
-            await message.bot.close_forum_topic(
-                chat_id=question.group_id,
-                message_thread_id=question.topic_id,
-            )
-
-            await message.reply(
-                text="<b>🔒 Вопрос закрыт</b>", reply_markup=ReplyKeyboardRemove()
-            )
-            await message.answer(
-                """Ты закрыл вопрос
-Оцени, помогли ли тебе решить вопрос""",
-                reply_markup=question_quality_specialist_kb(token=question.token),
-            )
-
-            logger.info(
-                f"[Вопрос] - [Закрытие] Пользователь {message.from_user.username} ({message.from_user.id}): Закрыт вопрос {question.token} со старшим {question.duty_userid}"
-            )
-        elif question.status == "closed":
-            await message.bot.edit_forum_topic(
-                chat_id=question.group_id,
-                message_thread_id=question.topic_id,
-                name=question.token,
-                icon_custom_emoji_id=group_settings.get_setting("emoji_closed"),
-            )
-            await message.reply("<b>🔒 Вопрос был закрыт</b>")
-            await message.bot.close_forum_topic(
-                chat_id=question.group_id,
-                message_thread_id=question.topic_id,
-            )
-            logger.info(
-                f"[Вопрос] - [Закрытие] Пользователь {message.from_user.username} ({message.from_user.id}): Неудачная попытка закрытия вопроса {question.token} со старшим {question.duty_userid}. Вопрос уже закрыт"
-            )
-
-    else:
-        await message.answer("""<b>⚠️ Ошибка</b>
+    if not question:
+        await message.answer("""⚠️ <b>Ошибка закрытия</b>
 
 Не удалось найти вопрос в базе""")
-        logger.error(
-            f"[Вопрос] - [Закрытие] Пользователь {message.from_user.username} ({message.from_user.id}): Попытка закрытия вопроса неуспешна. Не удалось найти вопрос в базе с TopicId = {message.message_id}"
-        )
+        return
+
+    if question.status == "closed":
+        await message.reply("""<b>⚠️ Предупреждение</b>
+
+Вопрос уже закрыт""")
+        return
+
+    # Останавливаем таймер автозакрытия
+    stop_inactivity_timer(question.token)
+
+    # Обновляем статус
+    await questions_repo.questions.update_question(
+        token=question.token,
+        end_time=datetime.datetime.now(tz=pytz.timezone("Asia/Yekaterinburg")),
+        status="closed",
+    )
+
+    # Уведомляем специалиста
+    await message.reply(
+        text="🔒 <b>Вопрос закрыт</b>", reply_markup=ReplyKeyboardRemove()
+    )
+    await message.answer(
+        """⚖️ <b>Оценка вопроса</b>
+
+Оцени, помогли ли тебе решить вопрос
+
+<i>Пожалуйста, удели время оценке. Это важно для статистики</i>""",
+        reply_markup=question_finish_employee_kb(question=question),
+    )
+
+    # Уведомляем дежурного
+    await message.bot.send_message(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+        text=f"""🔒 <b>Вопрос закрыт</b>
+
+Специалист <b>{format_fullname(user, True, True)}</b> закрыл вопрос
+
+Ответь, мог ли специалист решить вопрос самостоятельно
+
+<i>Если вопрос не решен - ты можешь вернуть его в работу</i>""",
+        reply_markup=question_finish_duty_kb(
+            question=question,
+        ),
+    )
+
+    # Закрываем топик
+    group_settings = await questions_repo.settings.get_settings_by_group_id(
+        group_id=question.group_id,
+    )
+    await message.bot.edit_forum_topic(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+        name=question.token,
+        icon_custom_emoji_id=group_settings.get_setting("emoji_closed"),
+    )
+    await message.bot.close_forum_topic(
+        chat_id=question.group_id,
+        message_thread_id=question.topic_id,
+    )
 
 
-@user_q_router.message(ActiveQuestion())
+@user_q.message(ActiveQuestion())
 async def active_question(
     message: Message,
     questions_repo: QuestionsRequestsRepo,
     user: Employee,
-    active_question_token: str,
+    question: Question,
 ) -> None:
     if message.message_thread_id:
         return
-
-    question: Question = await questions_repo.questions.get_question(
-        token=active_question_token
-    )
 
     if message.text == "✅️ Закрыть вопрос":
         await active_question_end(
             message=message,
             questions_repo=questions_repo,
             user=user,
-            active_question_token=active_question_token,
+            question=question,
         )
         return
 
@@ -207,7 +159,7 @@ async def active_question(
                 message_thread_id=question.topic_id,
                 reply_to_message_id=message_pair.topic_message_id,
             )
-            logger.info(
+            logger.debug(
                 f"[Вопрос] - [Ответ] Найдена связь для ответа: {message.chat.id}:{message.reply_to_message.message_id} -> {message_pair.topic_chat_id}:{message_pair.topic_message_id}"
             )
         else:
@@ -268,21 +220,18 @@ async def active_question(
     )
 
 
-@user_q_router.edited_message(ActiveQuestion())
+@user_q.edited_message(ActiveQuestion())
 async def handle_edited_message(
     message: Message,
-    active_question_token: str,
     questions_repo: QuestionsRequestsRepo,
     user: Employee,
+    question: Question,
 ) -> None:
     """Универсальный хендлер для редактируемых сообщений пользователей в активных вопросах"""
-    question: Question = await questions_repo.questions.get_question(
-        token=active_question_token
-    )
     if not question:
-        logger.error(
-            f"[Редактирование] Не найден вопрос с токеном {active_question_token}"
-        )
+        await message.answer("""⚠️ <b>Ошибка</b>
+
+Не удалось найти вопрос в базе""")
         return
 
     # Проверяем, что вопрос все еще активен
@@ -413,32 +362,23 @@ async def handle_edited_message(
         )
 
 
-@user_q_router.callback_query(
-    QuestionQualitySpecialist.filter(F.return_question.is_(False))
-)
+@user_q.callback_query(QuestionQualitySpecialist.filter())
 async def question_quality_employee(
     callback: CallbackQuery,
     callback_data: QuestionQualitySpecialist,
     questions_repo: QuestionsRequestsRepo,
 ):
-    question: Question = await questions_repo.questions.update_question(
+    question = await questions_repo.questions.update_question(
         token=callback_data.token, quality_employee=callback_data.answer
     )
 
     await callback.answer("Оценка успешно выставлена ❤️")
-    if callback_data.answer:
-        await callback.message.edit_text(
-            """Ты поставил оценку:
-👍 Дежурный <b>помог решить твой вопрос</b>""",
-            reply_markup=closed_question_specialist_kb(token=callback_data.token),
-        )
-    else:
-        await callback.message.edit_text(
-            """Ты поставил оценку:
-👎 Дежурный <b>не помог решить твой вопрос</b>""",
-            reply_markup=closed_question_specialist_kb(token=callback_data.token),
-        )
-    logger.info(
-        f"[Вопрос] - [Оценка] Пользователь {callback.from_user.username} ({callback.from_user.id}): Выставлена оценка {callback_data.answer} вопросу {question.token} от специалиста"
+
+    await callback.message.edit_text(
+        """<b>🔒 Вопрос закрыт</b>
+
+<i>Используй меню для взаимодействия с ботом</i>""",
+        reply_markup=question_finish_employee_kb(
+            question=question,
+        ),
     )
-    await callback.answer()

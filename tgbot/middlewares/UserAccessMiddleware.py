@@ -6,9 +6,6 @@ from aiogram.types import CallbackQuery, Message
 from stp_database.models.STP import Employee
 from stp_database.repo.STP import MainRequestsRepo
 
-from tgbot.services.logger import setup_logging
-
-setup_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -28,10 +25,10 @@ class UserAccessMiddleware(BaseMiddleware):
     ) -> Any:
         # Get user and repos from previous middleware (DatabaseMiddleware)
         user: Employee = data.get("user")
-        main_repo: MainRequestsRepo = data.get("main_repo")
+        stp_repo: MainRequestsRepo = data.get("stp_repo")
 
         # Update username if needed
-        await self._update_username(user, event, main_repo)
+        await self._update_username(user, event, stp_repo)
 
         return await handler(event, data)
 
@@ -39,12 +36,12 @@ class UserAccessMiddleware(BaseMiddleware):
     async def _update_username(
         user: Employee,
         event: Union[Message, CallbackQuery],
-        main_repo: MainRequestsRepo,
+        stp_repo: MainRequestsRepo,
     ):
         """Обновление юзернейма пользователя если он отличается от записанного
         :param user:
         :param event:
-        :param main_repo:
+        :param stp_repo:
         :return:
         """
         if not user:
@@ -56,7 +53,7 @@ class UserAccessMiddleware(BaseMiddleware):
         if stored_username != current_username:
             try:
                 if current_username is None:
-                    await main_repo.employee.update_user(
+                    await stp_repo.employee.update_user(
                         user_id=event.from_user.id,
                         username=None,
                     )
@@ -64,7 +61,7 @@ class UserAccessMiddleware(BaseMiddleware):
                         f"[Юзернейм] Удален юзернейм пользователя {event.from_user.id}"
                     )
                 else:
-                    await main_repo.employee.update_user(
+                    await stp_repo.employee.update_user(
                         user_id=event.from_user.id, username=current_username
                     )
                     logger.info(
