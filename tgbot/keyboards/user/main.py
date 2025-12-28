@@ -16,13 +16,13 @@ class MainMenu(CallbackData, prefix="menu"):
 
 class QuestionQualitySpecialist(CallbackData, prefix="q_quality_spec"):
     answer: bool = False
-    token: str = None
+    token: str | None = None
     return_question: bool = False
 
 
 class ReturnQuestion(CallbackData, prefix="return_q"):
     action: str
-    token: str = None
+    token: str | None = None
 
 
 class CancelQuestion(CallbackData, prefix="cancel_q"):
@@ -158,8 +158,8 @@ def question_finish_employee_kb(
 
 def activity_status_toggle_kb(
     token: str,
-    clever_link: str = None,
-    current_status: bool = None,
+    clever_link: str | None = None,
+    current_status: bool | None = None,
     global_status: bool = True,
 ) -> InlineKeyboardMarkup:
     """Клавиатура переключения статуса активности для топика

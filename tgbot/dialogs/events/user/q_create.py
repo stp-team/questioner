@@ -213,7 +213,7 @@ async def on_confirm(
     )
     employee_topics_month = (
         await questions_repo.questions.get_questions_count_last_month(
-            employee_userid=user.fullname
+            employee_userid=user.user_id
         )
     )
 

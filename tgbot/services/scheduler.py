@@ -9,7 +9,6 @@ from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlalchemy import Sequence
 from stp_database.models.Questions import MessagesPair, Question
-from stp_database.models.STP import Employee
 from stp_database.repo.Questions.requests import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
 
@@ -252,9 +251,8 @@ async def send_inactivity_warning(
 ):
     """Отправляет предупреждение о бездействии через 5 минут."""
     try:
-        question: Question = await questions_repo.questions.get_question(
-            token=question_token
-        )
+        question = await questions_repo.questions.get_question(token=question_token)
+
         group_settings = await questions_repo.settings.get_settings_by_group_id(
             group_id=question.group_id,
         )
@@ -284,9 +282,7 @@ async def auto_close_question(
 ):
     """Автоматически закрывает вопрос через 10 минут бездействия."""
     try:
-        question: Question = await questions_repo.questions.get_question(
-            token=question_token
-        )
+        question = await questions_repo.questions.get_question(token=question_token)
         group_settings = await questions_repo.settings.get_settings_by_group_id(
             group_id=question.group_id,
         )
@@ -478,9 +474,7 @@ async def send_attention_reminder(
 ):
     """Отправляет напоминание о вопросе, требующем внимания, в общий чат группы."""
     try:
-        question: Question = await questions_repo.questions.get_question(
-            token=question_token
-        )
+        question = await questions_repo.questions.get_question(token=question_token)
 
         if not question:
             logger.warning(
@@ -489,9 +483,7 @@ async def send_attention_reminder(
             stop_attention_reminder(question_token)
             return
 
-        employee: Employee = await stp_repo.employee.get_users(
-            user_id=question.employee_userid
-        )
+        employee = await stp_repo.employee.get_users(user_id=question.employee_userid)
 
         # Проверка, что вопрос все еще открыт и не имеет дежурного
         if question.status != "open" or question.duty_userid:
