@@ -102,12 +102,9 @@ def short_name(full_name: str) -> str:
 
 
 def format_fullname(
-    user: Employee = None,
+    user: Employee,
     short: bool = True,
     gender_emoji: bool = False,
-    fullname: str = None,
-    username: str = None,
-    user_id: int = None,
 ) -> str:
     """Форматирует ФИО пользователя.
 
@@ -115,24 +112,13 @@ def format_fullname(
         user: Экземпляр пользователя с моделью Employee
         short: Нужно ли сократить до ФИ
         gender_emoji: Нужно ли добавлять эмодзи гендеры к ФИО
-        fullname: ФИО пользователя (используется когда user=None)
-        username: Username пользователя (используется когда user=None)
-        user_id: ID пользователя (используется когда user=None)
 
     Returns:
         Форматированная строка с указанными параметрами
     """
-    # Определяем источник данных
-    if user is not None:
-        # Используем данные из объекта Employee
-        user_fullname = user.fullname
-        user_username = user.username
-        user_user_id = user.user_id
-    else:
-        # Используем переданные параметры
-        user_fullname = fullname or ""
-        user_username = username
-        user_user_id = user_id
+    user_fullname = user.fullname
+    user_username = user.username
+    user_user_id = user.user_id
 
     # Форматируем ФИО
     if short and user_fullname:

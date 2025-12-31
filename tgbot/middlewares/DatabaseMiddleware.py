@@ -1,8 +1,8 @@
 import logging
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable
 
 from aiogram import BaseMiddleware, Bot
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import Message, TelegramObject
 from sqlalchemy.exc import DBAPIError, DisconnectionError, OperationalError
 from stp_database.repo.Questions import QuestionsRequestsRepo
 from stp_database.repo.STP import MainRequestsRepo
@@ -27,11 +27,9 @@ class DatabaseMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[
-            [Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]
-        ],
-        event: Union[Message, CallbackQuery],
-        data: Dict[str, Any],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: Message,
+        data: dict[str, Any],
     ) -> Any:
         max_retries = 3
         retry_count = 0

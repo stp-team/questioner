@@ -127,16 +127,17 @@ class DbConfig:
     host : str
         Хост, на котором находится база данных
     password : str
-        Пароль для авторизации в базе данных.
+        Пароль для авторизации в базе данных
     user : str
-        Логин для авторизации в базе данных.
+        Логин для авторизации в базе данных
     main_db : str
-        Имя основной базы данных.
+        Имя основной базы данных
     questioner_db : str
-        Имя базы данных вопросника.
+        Имя базы данных вопросника
     """
 
     host: str
+    port: int
     user: str
     password: str
 
@@ -154,7 +155,7 @@ class DbConfig:
             username=self.user,
             password=self.password,
             host=self.host,
-            port=self.port if hasattr(self, "port") and self.port else 3306,
+            port=self.port if self.port else 3306,
             database=db_name,
             query={
                 "charset": "utf8mb4",
@@ -171,6 +172,7 @@ class DbConfig:
     def from_env(env: Env):
         """Создает объект DbConfig из переменных окружения."""
         host = env.str("DB_HOST")
+        port = env.int("DB_PORT")
         user = env.str("DB_USER")
         password = env.str("DB_PASS")
 
@@ -179,6 +181,7 @@ class DbConfig:
 
         return DbConfig(
             host=host,
+            port=port,
             user=user,
             password=password,
             main_db=main_db,
@@ -192,20 +195,20 @@ class RedisConfig:
 
     Attributes:
     ----------
-    redis_pass : Optional(str)
+    redis_pass : str
         Пароль для авторизации в Redis.
-    redis_port : Optional(int)
+    redis_port : int
         Порт, на котором слушает сервер Redis.
-    redis_host : Optional(str)
+    redis_host : str
         Хост, где запущен сервер Redis.
-    redis_db : Optional(str)
+    redis_db : str
         Название базы
     """
 
-    redis_pass: Optional[str]
-    redis_port: Optional[int]
-    redis_host: Optional[str]
-    redis_db: Optional[str]
+    redis_host: str
+    redis_port: int
+    redis_db: str
+    redis_pass: str
 
     def dsn(self) -> str:
         """Конструирует и возвращает Redis DSN (Data Source Name)."""
@@ -239,21 +242,21 @@ class Config:
     Attributes:
     ----------
     tg_bot : TgBot
-        Хранит специфичные для бота настройки.
-    db : Optional[DbConfig]
-        Хранит специфичные для базы данных настройки (стандартно None).
-    redis : Optional[RedisConfig]
-        Хранит специфичные для Redis настройки (стандартно None).
+        Хранит специфичные для бота настройки
+    db : DbConfig
+        Хранит специфичные для базы данных настройки (стандартно None)
+    redis : RedisConfig
+        Хранит специфичные для Redis настройки (стандартно None)
     """
 
     tg_bot: TgBot
     forum: ForumsConfig
     questioner: QuestionerConfig
     db: DbConfig
-    redis: Optional[RedisConfig] = None
+    redis: RedisConfig
 
 
-def load_config(path: str = None) -> Config:
+def load_config(path: str | None = None) -> Config:
     """Эта функция принимает в качестве входных данных опциональный путь к файлу и возвращает объект Config.
     :param path: Путь к файлу env, из которого загружаются переменные конфигурации.
     Она считывает переменные окружения из файла .env, если он указан, в противном случае — из окружения процесса.

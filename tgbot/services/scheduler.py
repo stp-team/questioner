@@ -17,6 +17,7 @@ from tgbot.keyboards.group.main import closed_question_duty_kb
 from tgbot.keyboards.user.main import (
     question_finish_employee_kb,
 )
+from tgbot.misc.helpers import format_fullname
 
 config = load_config(".env")
 
@@ -34,7 +35,7 @@ if config.tg_bot.use_redis:
         "host": config.redis.redis_host,
         "port": config.redis.redis_port,
         "password": config.redis.redis_pass,
-        "db": 1,
+        "db": config.redis.redis_db,
         "ssl": False,
         "decode_responses": False,
     }
@@ -253,11 +254,17 @@ async def send_inactivity_warning(
     try:
         question = await questions_repo.questions.get_question(token=question_token)
 
+        if not question:
+            return
+
         group_settings = await questions_repo.settings.get_settings_by_group_id(
             group_id=question.group_id,
         )
 
-        if question and question.status in ["open", "in_progress"]:
+        if not group_settings:
+            return
+
+        if question.status in ["open", "in_progress"]:
             # Отправляем предупреждение в топик
             await bot.send_message(
                 chat_id=question.group_id,
@@ -283,11 +290,18 @@ async def auto_close_question(
     """Автоматически закрывает вопрос через 10 минут бездействия."""
     try:
         question = await questions_repo.questions.get_question(token=question_token)
+
+        if not question:
+            return
+
         group_settings = await questions_repo.settings.get_settings_by_group_id(
             group_id=question.group_id,
         )
 
-        if question and question.status in ["open", "in_progress"]:
+        if not group_settings:
+            return
+
+        if question.status in ["open", "in_progress"]:
             # Закрываем вопрос
             await questions_repo.questions.update_question(
                 token=question.token,
@@ -337,11 +351,16 @@ async def start_inactivity_timer(question_token: str, questions_repo):
     try:
         # Проверяем, нужно ли запускать таймер для этого вопроса
         question = await questions_repo.questions.get_question(token=question_token)
+
         if not question:
             return
+
         group_settings = await questions_repo.settings.get_settings_by_group_id(
             group_id=question.group_id,
         )
+
+        if not group_settings:
+            return
 
         # Проверяем, что у вопроса есть назначенный дежурный
         if not question.duty_userid:
@@ -485,18 +504,24 @@ async def send_attention_reminder(
 
         employee = await stp_repo.employee.get_users(user_id=question.employee_userid)
 
+        if not employee:
+            logger.warning(
+                "[Внимание вопросу] Не удалось напомнить о вопросе: Не нашли специалиста"
+            )
+            return
+
         # Проверка, что вопрос все еще открыт и не имеет дежурного
         if question.status != "open" or question.duty_userid:
             logger.info(
                 f"[Внимание вопросу] Вопрос {question_token} уже имеет дежурного или закрыт, пропускаем напоминание"
             )
-            stop_attention_reminder(question.token)
+            stop_attention_reminder(question_token=question.token)
             return
 
         # Отправка уведомления в главную тему
         reminder_text = f"""🔔 <b>Вопрос требует внимания!</b>
 
-<b>От:</b> {employee.fullname}
+<b>От:</b> {format_fullname(employee, True, True)}
 <b>Создан в:</b> {question.start_time.strftime("%H:%M")} ПРМ
 
 Вопрос ожидает дежурного уже 5 минут!

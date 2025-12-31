@@ -11,7 +11,7 @@ async def send_message(
     user_id: Union[int, str],
     text: str,
     disable_notification: bool = False,
-    reply_markup: InlineKeyboardMarkup = None,
+    reply_markup: InlineKeyboardMarkup | None = None,
 ) -> bool:
     """Безопасная рассылки сообщений
 
@@ -54,7 +54,7 @@ async def broadcast(
     users: list[Union[str, int]],
     text: str,
     disable_notification: bool = False,
-    reply_markup: InlineKeyboardMarkup = None,
+    reply_markup: InlineKeyboardMarkup | None = None,
 ) -> int:
     """Simple broadcaster.
     :param bot: Bot instance.

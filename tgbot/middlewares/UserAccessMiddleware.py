@@ -1,8 +1,8 @@
 import logging
-from typing import Any, Awaitable, Callable, Dict, Union
+from typing import Any, Awaitable, Callable, Union
 
 from aiogram import BaseMiddleware, Bot
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, TelegramObject
 from stp_database.models.STP import Employee
 from stp_database.repo.STP import MainRequestsRepo
 
@@ -17,11 +17,9 @@ class UserAccessMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[
-            [Union[Message, CallbackQuery], Dict[str, Any]], Awaitable[Any]
-        ],
-        event: Union[Message, CallbackQuery],
-        data: Dict[str, Any],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
     ) -> Any:
         # Get user and repos from previous middleware (DatabaseMiddleware)
         user: Employee = data.get("user")

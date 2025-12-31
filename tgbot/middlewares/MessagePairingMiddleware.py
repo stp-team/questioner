@@ -1,8 +1,8 @@
 import logging
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any, Awaitable, Callable
 
 from aiogram import BaseMiddleware
-from aiogram.types import Message
+from aiogram.types import TelegramObject
 from stp_database.models.Questions import MessagesPair
 from stp_database.repo.Questions import QuestionsRequestsRepo
 
@@ -18,9 +18,9 @@ class MessagePairingMiddleware(BaseMiddleware):
 
     async def __call__(
         self,
-        handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
-        event: Message,
-        data: Dict[str, Any],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
     ) -> Any:
         # Процессим только измененные сообщения
         if not (hasattr(event, "edit_date") and event.edit_date):

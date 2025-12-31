@@ -532,7 +532,7 @@ async def question_quality_duty(
             await callback.message.edit_text(
                 f"""<b>🔒 Вопрос закрыт</b>
 
-👮‍♂️ Дежурный <b>{short_name(user.fullname)}</b> поставил оценку:
+👮‍♂️ Дежурный <b>{format_fullname(user, True, True)}</b> поставил оценку:
 👍 Специалист <b>не мог решить вопрос самостоятельно</b>""",
                 reply_markup=closed_question_duty_kb(
                     token=callback_data.token, allow_return=question.allow_return
@@ -542,7 +542,7 @@ async def question_quality_duty(
             await callback.message.edit_text(
                 f"""<b>🔒 Вопрос закрыт</b>
 
-👮‍♂️ Дежурный <b>{short_name(user.fullname)}</b> поставил оценку:
+👮‍♂️ Дежурный <b>{format_fullname(user, True, True)}</b> поставил оценку:
 👎 Специалист <b>мог решить вопрос самостоятельно</b>""",
                 reply_markup=closed_question_duty_kb(
                     token=callback_data.token, allow_return=question.allow_return
