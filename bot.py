@@ -113,7 +113,6 @@ def register_middlewares(
         dp.message.outer_middleware(middleware)
         dp.callback_query.outer_middleware(middleware)
         dp.edited_message.outer_middleware(middleware)
-        dp.chat_member.outer_middleware(middleware)
 
 
 def get_storage(config):
