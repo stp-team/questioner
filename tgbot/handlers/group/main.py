@@ -62,6 +62,14 @@ async def handle_q_message(
     if message.message_thread_id != question.topic_id:
         return
 
+    if message.voice:
+        await message.reply(
+            """<b>⚠️ Голосовые сообщения недоступны</b>
+
+Пожалуйста, используйте текстовые сообщения для общения"""
+        )
+        return
+
     group_settings = await questions_repo.settings.get_settings_by_group_id(
         group_id=message.chat.id,
     )

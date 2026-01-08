@@ -123,6 +123,14 @@ async def active_question(
     if message.message_thread_id:
         return
 
+    if message.voice:
+        await message.reply(
+            """<b>⚠️ Голосовые сообщения недоступны</b>
+
+Пожалуйста, используй текстовые сообщения для общения"""
+        )
+        return
+
     if message.text == "✅️ Закрыть вопрос":
         await active_question_end(
             message=message,
