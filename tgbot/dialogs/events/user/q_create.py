@@ -178,9 +178,10 @@ async def link_error(
 
 
 async def on_link_success(
-    message: Message, _widget, dialog_manager: DialogManager, **_kwargs
+    message: Message, _widget, dialog_manager: DialogManager, text: str, **_kwargs
 ):
     """Обработка успешного ввода ссылки - создает вопрос."""
+    dialog_manager.dialog_data["link"] = text
     await create_question(message, dialog_manager)
 
 
