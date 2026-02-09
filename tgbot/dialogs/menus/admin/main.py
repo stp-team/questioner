@@ -4,13 +4,14 @@ from aiogram_dialog import Dialog, DialogManager, Window
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Const
 
+from tgbot.dialogs.events.admin.stats import start_stats_extract
 from tgbot.dialogs.states.admin.main import AdminSG
 
 menu_window = Window(
     Const("""🛡️ <b>Управление ботом</b>
 
 <i>Используй меню для взаимодействия с ботом</i>"""),
-    Button(Const("📥 Выгрузка статистики"), id="stats"),
+    Button(Const("📥 Выгрузка статистики"), id="stats", on_click=start_stats_extract),
     state=AdminSG.menu,
 )
 
