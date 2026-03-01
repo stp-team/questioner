@@ -58,7 +58,7 @@ jobs:
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
 
   deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: none
     environment:
